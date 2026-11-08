@@ -1,12 +1,18 @@
 <?php
 
 use App\Http\Controllers\DeployController;
+use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\MediaController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return view('welcome');
 })->name('home');
+
+// Printable invoice. Staff see any; customers only their own.
+Route::get('/invoices/{booking}', [InvoiceController::class, 'show'])
+    ->middleware('auth')
+    ->name('invoices.show');
 
 // Uploaded images (vehicles, tours, attractions, cities).
 Route::get('/media/{path}', MediaController::class)

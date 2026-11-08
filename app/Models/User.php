@@ -13,7 +13,10 @@ class User extends Authenticatable implements FilamentUser
 {
     use Notifiable;
 
-    /** `role` is deliberately not fillable, so a customer can never promote themselves. */
+    /**
+     * `role` and the credit settings are deliberately not fillable, so a customer can never
+     * promote themselves or grant themselves credit. Only admin screens set them.
+     */
     protected $fillable = [
         'name',
         'email',
@@ -23,6 +26,10 @@ class User extends Authenticatable implements FilamentUser
         'phone',
         'country_code',
         'marketing_opt_in',
+        'company_name',
+        'billing_address',
+        'tax_number',
+        'preferred_currency',
     ];
 
     protected $hidden = [
@@ -38,12 +45,41 @@ class User extends Authenticatable implements FilamentUser
             'password' => 'hashed',
             'role' => UserRole::class,
             'marketing_opt_in' => 'boolean',
+            'credit_enabled' => 'boolean',
+            'credit_limit' => 'decimal:2',
         ];
     }
 
     public function bookings(): HasMany
     {
         return $this->hasMany(Booking::class);
+    }
+
+    /** Total of this customer's unpaid on-account bookings. */
+    public function creditOutstanding(): float
+    {
+        return round((float) $this->bookings()->outstandingCredit()->sum('total'), 2);
+    }
+
+    /** How much more they can book on account. Null limit = no limit. */
+    public function creditAvailable(): ?float
+    {
+        if (! $this->credit_enabled) {
+            return 0.0;
+        }
+
+        return $this->credit_limit === null ? null : max(0, round((float) $this->credit_limit - $this->creditOutstanding(), 2));
+    }
+
+    public function canBookOnCredit(float $amount): bool
+    {
+        if (! $this->credit_enabled) {
+            return false;
+        }
+
+        $available = $this->creditAvailable();
+
+        return $available === null || $amount <= $available;
     }
 
     public function isAdmin(): bool

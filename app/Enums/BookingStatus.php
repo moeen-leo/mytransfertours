@@ -2,31 +2,52 @@
 
 namespace App\Enums;
 
+use Filament\Support\Contracts\HasColor;
 use Filament\Support\Contracts\HasLabel;
 
-enum BookingStatus: string implements HasLabel
+/**
+ * Where the TRIP stands. Money is tracked separately in PaymentStatus,
+ * because a credit-account booking is booked before it is paid.
+ */
+enum BookingStatus: string implements HasLabel, HasColor
 {
-    case PendingPayment = 'pending_payment';
+    case PendingPayment = 'pending_payment';   // at Stripe, not finished
     case PaymentFailed = 'payment_failed';
-    case Paid = 'paid';
-    case Confirmed = 'confirmed';
-    case Completed = 'completed';
+    case Booked = 'booked';                     // paid by card or confirmed on account; suppliers emailed
+    case Confirmed = 'confirmed';               // every supplier has confirmed
+    case Completed = 'completed';               // service date has passed
     case Cancelled = 'cancelled';
-    case PartiallyRefunded = 'partially_refunded';
-    case Refunded = 'refunded';
-
-    public function label(): string
-    {
-        return ucwords(str_replace('_', ' ', $this->value));
-    }
-
-    public function isPaid(): bool
-    {
-        return in_array($this, [self::Paid, self::Confirmed, self::Completed, self::PartiallyRefunded], true);
-    }
 
     public function getLabel(): string
     {
-        return $this->label();
+        return match ($this) {
+            self::PendingPayment => 'Awaiting payment',
+            self::PaymentFailed => 'Payment failed',
+            self::Booked => 'Booked',
+            self::Confirmed => 'Confirmed',
+            self::Completed => 'Completed',
+            self::Cancelled => 'Cancelled',
+        };
+    }
+
+    public function label(): string
+    {
+        return $this->getLabel();
+    }
+
+    public function getColor(): string
+    {
+        return match ($this) {
+            self::PendingPayment => 'gray',
+            self::PaymentFailed, self::Cancelled => 'danger',
+            self::Booked => 'warning',
+            self::Confirmed, self::Completed => 'success',
+        };
+    }
+
+    /** Bookings that are live: suppliers have been told and the customer has a reservation. */
+    public function isActive(): bool
+    {
+        return in_array($this, [self::Booked, self::Confirmed, self::Completed], true);
     }
 }

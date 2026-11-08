@@ -15,6 +15,8 @@ $app = Application::configure(basePath: dirname(__DIR__))
         $middleware->validateCsrfTokens(except: ['stripe/webhook']);
         // Hostinger sits behind a proxy; trust it so HTTPS URLs are generated correctly.
         $middleware->trustProxies(at: '*');
+        // Until customer accounts exist, signed-out visitors to protected pages go to the admin login.
+        $middleware->redirectGuestsTo(fn () => route('filament.admin.auth.login'));
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //
