@@ -32,15 +32,19 @@ $app = Application::configure(basePath: dirname(__DIR__))
 |     ~/domains/mytransfertours.com/mtt-config/dev/.env
 | (one folder per site: dev, live, ...). Locally it falls back to the project root.
 */
+//
+// Walks up from the project folder and uses the first match of
+//     <ancestor>/mtt-config/<site folder>/.env   or   <ancestor>/mtt-config/.env
+// so it works whatever Hostinger's folder layout is.
 $projectRoot = dirname(__DIR__);
+$site = basename($projectRoot);
 $dir = $projectRoot;
 while (($parent = dirname($dir)) !== $dir) {
-    if (basename($parent) === 'public_html') {
-        $envDir = dirname($parent).DIRECTORY_SEPARATOR.'mtt-config'.DIRECTORY_SEPARATOR.basename($projectRoot);
-        if (is_file($envDir.DIRECTORY_SEPARATOR.'.env')) {
+    foreach ([$parent.'/mtt-config/'.$site, $parent.'/mtt-config'] as $envDir) {
+        if (is_file($envDir.'/.env')) {
             $app->useEnvironmentPath($envDir);
+            break 2;
         }
-        break;
     }
     $dir = $parent;
 }
