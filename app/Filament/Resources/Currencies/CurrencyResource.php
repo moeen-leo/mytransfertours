@@ -53,20 +53,29 @@ class CurrencyResource extends Resource
                         ->disabled(fn (?Currency $record) => (bool) $record?->is_base),
                     TextInput::make('name')->required()->placeholder('US dollar'),
                     TextInput::make('symbol')->required()->maxLength(8)->placeholder('$'),
+                    Toggle::make('auto_update')
+                        ->label('Update the rate automatically every day (European Central Bank)')
+                        ->default(true)
+                        ->live()
+                        ->hidden(fn (?Currency $record) => (bool) $record?->is_base)
+                        ->columnSpanFull(),
                     TextInput::make('rate')
                         ->label('1 RM equals')
                         ->numeric()->minValue(0.000001)->required()
                         ->live(onBlur: true)
                         ->suffix(fn (Get $get) => strtoupper((string) $get('code')) ?: '…')
-                        ->disabled(fn (?Currency $record) => (bool) $record?->is_base)
-                        ->helperText('Check a current rate, e.g. on Google: "1 MYR to USD".'),
+                        ->disabled(fn (?Currency $record, Get $get) => (bool) $record?->is_base || (bool) $get('auto_update'))
+                        ->dehydrated()
+                        ->helperText(fn (Get $get) => $get('auto_update')
+                            ? 'Updated automatically every day. Turn off the switch above to set it yourself.'
+                            : 'Set by hand. Check a current rate, e.g. on Google: "1 MYR to USD".'),
                     TextInput::make('buffer_percent')
                         ->label('Buffer')
                         ->numeric()->minValue(0)->maxValue(20)->default(2)
                         ->live(onBlur: true)
                         ->suffix('%')
                         ->disabled(fn (?Currency $record) => (bool) $record?->is_base)
-                        ->helperText('Covers exchange-rate swings and card conversion fees.'),
+                        ->helperText('Recommended 3%: covers card currency-conversion fees and daily rate swings.'),
                     TextInput::make('sort')->numeric()->default(0),
                     Text::make(function (Get $get) {
                         $rate = (float) $get('rate') * (1 + (float) $get('buffer_percent') / 100);
@@ -94,6 +103,10 @@ class CurrencyResource extends Resource
                 TextColumn::make('buffer_percent')->label('Buffer')->suffix('%'),
                 TextColumn::make('example')->label('RM 100 shows as')
                     ->state(fn (Currency $r) => $r->format($r->fromBase(100))),
+                TextColumn::make('rate_source')->label('Source')->badge()
+                    ->formatStateUsing(fn (?string $state) => match ($state) { 'ecb' => 'Automatic (ECB)', 'manual' => 'Manual', 'base' => 'Base', default => 'Not set yet' })
+                    ->color(fn (?string $state) => match ($state) { 'ecb' => 'success', 'manual' => 'warning', default => 'gray' })
+                    ->placeholder('Not set yet'),
                 TextColumn::make('rate_updated_at')->label('Rate last changed')->since()->placeholder('Never: please check'),
                 ToggleColumn::make('is_active')->label('Active')
                     ->disabled(fn (Currency $r) => $r->is_base),

@@ -14,3 +14,7 @@ Schedule::command('app:post-deploy')->everyMinute()->withoutOverlapping();
 Schedule::command('queue:work --stop-when-empty --max-time=50 --tries=3')
     ->everyMinute()
     ->withoutOverlapping();
+
+// Exchange rates (base MYR) from the European Central Bank; the command itself only
+// fetches when rates are older than 12 hours, so running it every tick is cheap.
+Schedule::command('app:update-exchange-rates')->everyMinute()->withoutOverlapping();

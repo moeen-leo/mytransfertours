@@ -14,6 +14,7 @@ class Currency extends Model
         'rate' => 'decimal:6',
         'buffer_percent' => 'decimal:2',
         'is_base' => 'boolean',
+        'auto_update' => 'boolean',
         'is_active' => 'boolean',
         'rate_updated_at' => 'datetime',
     ];
@@ -23,6 +24,10 @@ class Currency extends Model
         static::saving(function (Currency $c) {
             if ($c->isDirty(['rate', 'buffer_percent'])) {
                 $c->rate_updated_at = now();
+            }
+            // A rate typed in the admin (rather than fetched) is marked as manual.
+            if ($c->isDirty('rate') && ! $c->isDirty('rate_source')) {
+                $c->rate_source = 'manual';
             }
         });
         static::saved(fn () => Cache::forget('currencies:active'));

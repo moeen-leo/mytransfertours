@@ -57,6 +57,10 @@ class PostDeploy extends Command
 
             $this->ensureFirstAdmin();
 
+            // Refresh exchange rates if they are stale (never fails the deploy).
+            Artisan::call('app:update-exchange-rates');
+            $this->line(trim(Artisan::output()));
+
             $uploads = (string) config('filesystems.disks.uploads.root');
             if ($uploads !== '' && ! is_dir($uploads)) {
                 @mkdir($uploads, 0755, true);
