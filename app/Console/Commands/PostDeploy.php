@@ -62,8 +62,9 @@ class PostDeploy extends Command
                 @mkdir($uploads, 0755, true);
             }
 
+            // Clear caches only. Config is deliberately NOT cached, so edits to the
+            // .env file in Hostinger's File Manager take effect immediately.
             Artisan::call('optimize:clear');
-            Artisan::call('optimize');
         } catch (\Throwable $e) {
             // Leave deployed_build unchanged so the next minute retries; log loudly.
             Log::error('Post-deploy failed', ['build' => $build, 'error' => $e->getMessage()]);
