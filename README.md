@@ -2,58 +2,33 @@
 
 Transfers, tours and attraction tickets in one cart, paid once with Stripe Checkout. Malaysia first, built to go global.
 
-This commit is **step 1: the database layer**: migrations, Eloquent models and enums. The design is documented in [`docs/DATABASE.md`](docs/DATABASE.md).
+Laravel 12 · PHP 8.2+ · MySQL 8 / MariaDB 10.6+
 
-## Add to a Laravel project
+## Docs
 
-These files drop into a fresh Laravel 11 or 12 app:
+- [`docs/DATABASE.md`](docs/DATABASE.md): database design, tables and the booking automation flow
+- [`docs/DEPLOY-HOSTINGER.md`](docs/DEPLOY-HOSTINGER.md): deploying to Hostinger without SSH
+
+## Branches
+
+| Branch | Purpose |
+|---|---|
+| `develop` | Day-to-day work. Every push is built by GitHub Actions. |
+| `build-dev` | Ready-to-run build of `develop` (includes `vendor/`). **Hostinger dev site deploys this.** |
+| `main` | Live code. Updated by merging `develop` after testing on dev. |
+| `build-main` | Ready-to-run build of `main`. **Hostinger live site deploys this** (at launch). |
+
+Never commit to `build-*` branches; they are overwritten on every build.
+
+## Run locally
 
 ```bash
-composer create-project laravel/laravel mytransfertours
-# copy app/, database/ and docs/ from this repo over the new project
-php artisan migrate
+composer install
+cp .env.example .env    # set APP_ENV=local, APP_DEBUG=true and your local DB
+php artisan key:generate
+php artisan migrate --seed
+php artisan serve
 ```
-
-### Two small edits to existing Laravel files
-
-**1. `app/Providers/AppServiceProvider.php`.** Short, stable names in the polymorphic columns (so renaming a class never breaks old bookings):
-
-```php
-use Illuminate\Database\Eloquent\Relations\Relation;
-
-public function boot(): void
-{
-    Relation::enforceMorphMap([
-        'transfer_route' => \App\Models\TransferRoute::class,
-        'tour'           => \App\Models\Tour::class,
-        'attraction'     => \App\Models\Attraction::class,
-    ]);
-}
-```
-
-**2. `app/Models/User.php`.** Add the new fields and relations:
-
-```php
-use App\Enums\UserRole;
-
-protected $fillable = ['name', 'email', 'password', 'google_id', 'avatar', 'phone', 'country_code', 'marketing_opt_in'];
-
-protected function casts(): array
-{
-    return [
-        'email_verified_at' => 'datetime',
-        'last_login_at' => 'datetime',
-        'password' => 'hashed',
-        'role' => UserRole::class,
-        'marketing_opt_in' => 'boolean',
-    ];
-}
-
-public function bookings() { return $this->hasMany(\App\Models\Booking::class); }
-public function isAdmin(): bool { return $this->role === UserRole::Admin; }
-```
-
-`role` is deliberately left out of `$fillable` so a customer can never promote themselves.
 
 ## Packages for the next steps
 
@@ -61,16 +36,17 @@ public function isAdmin(): bool { return $this->role === UserRole::Admin; }
 |---|---|
 | `filament/filament` | Admin panel (catalogue, bookings, suppliers, email templates) |
 | `laravel/socialite` | Google sign-in |
-| `laravel/breeze` | Email sign-up, login, verification |
 | `stripe/stripe-php` | Stripe Checkout sessions, webhooks, refunds |
 | `barryvdh/laravel-dompdf` | Customer voucher PDFs |
 
 ## Roadmap
 
 1. ~~Database layer~~
-2. Admin panel (Filament): locations, vehicles, suppliers, routes and prices, tours, attractions, pricing rules
-3. Pricing service and cart
-4. Customer pages: home, transfer, tour and ticket flows, checkout
-5. Stripe Checkout + webhook
-6. Emails: customer voucher, supplier one-click confirm, reminders, manual send
-7. Admin bookings: detail, resend, refund, activity log
+2. ~~Laravel base + Hostinger auto-deploy~~
+3. Admin panel (Filament): locations, vehicles, suppliers, routes and prices, tours, attractions, pricing rules
+4. Pricing service and cart
+5. Customer pages: home, transfer, tour and ticket flows, checkout
+6. Sign-up with email and Google
+7. Stripe Checkout + webhook
+8. Emails: customer voucher, supplier one-click confirm, reminders, manual send
+9. Admin bookings: detail, resend, refund, activity log

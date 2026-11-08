@@ -1,0 +1,62 @@
+name: Build for Hostinger
+
+# Hostinger's Git deploy only copies files; it cannot run Composer.
+# On every push this job installs the PHP dependencies and pushes a
+# ready-to-run copy (with vendor/) to a build branch:
+#   develop -> build-dev   (dev.mytransfertours.com)
+#   main    -> build-main  (live site, at launch)
+# Hostinger is connected to the build branch, not to develop/main.
+
+on:
+  push:
+    branches: [develop, main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: build-${{ github.ref_name }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: mbstring, pdo_mysql, bcmath, intl, zip
+          coverage: none
+
+      - name: Install dependencies (production)
+        run: composer install --no-dev --prefer-dist --no-interaction --no-progress --optimize-autoloader
+
+      - name: Syntax check
+        run: find app database routes bootstrap public -name '*.php' -print0 | xargs -0 -n1 php -l > /dev/null
+
+      - name: Check the app boots
+        run: |
+          cp .env.example .env
+          php artisan key:generate --force
+          php artisan about --only=environment
+          rm .env
+
+      - name: Stamp build id
+        run: echo "${GITHUB_SHA}" > BUILD_ID
+
+      - name: Push ready-to-run build
+        run: |
+          TARGET="build-${GITHUB_REF_NAME}"
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout --orphan "$TARGET-tmp"
+          git rm -r -q --cached .github
+          rm -rf .github
+          git add -A
+          git add -f vendor composer.lock BUILD_ID
+          git commit -q -m "Build ${GITHUB_SHA::7} from ${GITHUB_REF_NAME}"
+          git push -f origin "HEAD:${TARGET}"
+          echo "Pushed to ${TARGET}"
