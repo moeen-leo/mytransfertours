@@ -100,7 +100,12 @@ class BookingResource extends Resource
                     TextEntry::make('settlement_reference')->label('Settlement ref.')->placeholder('—')
                         ->visible(fn (Booking $r) => $r->payment_method === PaymentMethod::Credit),
                     TextEntry::make('stripe_payment_intent_id')->label('Stripe payment')->placeholder('—')->copyable()
-                        ->visible(fn (Booking $r) => $r->payment_method === PaymentMethod::Card),
+                        ->visible(fn (Booking $r) => $r->payment_method === PaymentMethod::Card)
+                        ->url(fn (Booking $r) => $r->stripe_payment_intent_id ? 'https://dashboard.stripe.com/'.(str_starts_with((string) config('services.stripe.secret'), 'sk_test') ? 'test/' : '').'payments/'.$r->stripe_payment_intent_id : null, true),
+                    TextEntry::make('refunded')->label('Refunded')
+                        ->state(fn (Booking $r) => $r->refunds->where('status', 'succeeded')->map(fn ($x) => $r->currency.' '.number_format((float) $x->amount, 2).' · '.$x->created_at->format('j M').($x->reason ? ' · '.$x->reason : ''))->join("\n"))
+                        ->visible(fn (Booking $r) => $r->refunds->isNotEmpty())
+                        ->extraAttributes(['style' => 'white-space: pre-line']),
                 ]),
 
             Section::make('Items')

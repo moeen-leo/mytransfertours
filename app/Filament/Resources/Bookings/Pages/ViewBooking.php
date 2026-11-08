@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Bookings\Pages;
 
+use App\Enums\BookingStatus;
 use App\Enums\PaymentMethod;
 use App\Enums\PaymentStatus;
 use App\Filament\Resources\Bookings\BookingResource;
@@ -10,6 +11,7 @@ use Filament\Actions\Action;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ViewRecord;
 use Filament\Support\Icons\Heroicon;
@@ -59,6 +61,42 @@ class ViewBooking extends ViewRecord
                     $record->log('settled', 'Marked as settled: '.$data['reference'], array_filter(['note' => $data['note'] ?? null]));
 
                     Notification::make()->title('Booking settled')->success()->send();
+                }),
+
+            Action::make('refund')
+                ->label('Refund')
+                ->icon(Heroicon::OutlinedArrowUturnLeft)
+                ->color('danger')
+                ->visible(fn (Booking $record) => $record->payment_method === PaymentMethod::Card
+                    && in_array($record->payment_status, [PaymentStatus::Paid, PaymentStatus::PartiallyRefunded], true))
+                ->modalHeading(fn (Booking $record) => 'Refund '.$record->reference)
+                ->modalDescription(fn (Booking $record) => 'Money goes back to the customer\'s card through Stripe (usually 5–10 days). Paid: '
+                    .$record->currency.' '.number_format((float) $record->total, 2)
+                    .', already refunded: '.$record->currency.' '.number_format((float) $record->refunds()->where('status', 'succeeded')->sum('amount'), 2).'.')
+                ->schema([
+                    TextInput::make('amount')
+                        ->label(fn (Booking $record) => 'Amount ('.$record->currency.')')
+                        ->numeric()->minValue(0.01)->required()
+                        ->default(fn (Booking $record) => round((float) $record->total - (float) $record->refunds()->where('status', 'succeeded')->sum('amount'), 2)),
+                    TextInput::make('reason')->label('Reason')->placeholder('Customer cancelled within free cancellation')->required(),
+                    Toggle::make('cancel')->label('Also cancel the booking')->default(true),
+                ])
+                ->requiresConfirmation()
+                ->action(function (Booking $record, array $data) {
+                    try {
+                        app(\App\Services\StripeService::class)->refund($record, (float) $data['amount'], $data['reason'], auth()->id());
+                    } catch (\Throwable $e) {
+                        Notification::make()->title('Refund failed')->body($e->getMessage())->danger()->persistent()->send();
+
+                        return;
+                    }
+
+                    if ($data['cancel'] ?? false) {
+                        $record->forceFill(['status' => BookingStatus::Cancelled, 'cancelled_at' => now()])->save();
+                        $record->log('cancelled', 'Booking cancelled with refund');
+                    }
+
+                    Notification::make()->title('Refund sent to Stripe')->success()->send();
                 }),
 
             Action::make('note')

@@ -26,6 +26,11 @@ Route::delete('/trip/items/{item}', [TripController::class, 'remove'])->whereNum
 Route::get('/checkout', [CheckoutController::class, 'show'])->name('checkout');
 Route::post('/checkout', [CheckoutController::class, 'store'])->middleware('throttle:10,1')->name('checkout.store');
 Route::get('/booking/{booking}/confirmed', [CheckoutController::class, 'confirmed'])->name('booking.confirmed');
+Route::get('/checkout/{booking}/paid', [CheckoutController::class, 'success'])->name('checkout.success');
+Route::get('/checkout/{booking}/cancelled', [CheckoutController::class, 'cancelled'])->name('checkout.cancelled');
+
+// Stripe calls this after payments (signature-checked; CSRF is excluded in bootstrap/app.php).
+Route::post('/stripe/webhook', \App\Http\Controllers\StripeWebhookController::class)->name('stripe.webhook');
 
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'showLogin'])->name('login');

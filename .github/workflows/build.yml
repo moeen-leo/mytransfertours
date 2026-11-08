@@ -45,6 +45,11 @@ jobs:
           php artisan about --only=environment
           rm .env
 
+      - name: Strip docs from vendor
+        # Not needed on the server, and some (e.g. stripe-php's README) contain example keys
+        # that GitHub's secret scanning blocks.
+        run: find vendor -type f \( -iname '*.md' -o -iname '*.markdown' \) -delete
+
       - name: Stamp build id
         run: echo "${GITHUB_SHA}" > BUILD_ID
 

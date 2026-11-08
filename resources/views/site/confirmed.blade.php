@@ -5,8 +5,12 @@
 @section('content')
 <div class="wrap page" style="max-width: 760px">
     <div class="card pad stack" style="gap: 18px">
-        <span class="chip" style="align-self: flex-start">Booked</span>
+        @php($pending = $booking->status === \App\Enums\BookingStatus::PendingPayment)
+        <span class="chip" style="align-self: flex-start">{{ $pending ? 'Confirming payment' : ($booking->payment_status === \App\Enums\PaymentStatus::Paid ? 'Paid' : 'Booked') }}</span>
         <h1 style="font-size: 34px">Thank you, {{ $booking->lead_first_name }}!</h1>
+        @if ($pending)
+            <div class="alert info">We're waiting for Stripe to confirm your payment. This usually takes a few seconds. <a href="{{ request()->fullUrl() }}">Refresh</a></div>
+        @endif
         <p class="muted">Your booking reference is <b style="color: var(--ink)">{{ $booking->reference }}</b>. We're confirming the details with our local partners now, and you'll hear from us at {{ $booking->email }}.</p>
 
         <div>
