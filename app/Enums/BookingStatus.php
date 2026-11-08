@@ -2,7 +2,9 @@
 
 namespace App\Enums;
 
-enum BookingStatus: string
+use Filament\Support\Contracts\HasLabel;
+
+enum BookingStatus: string implements HasLabel
 {
     case PendingPayment = 'pending_payment';
     case PaymentFailed = 'payment_failed';
@@ -21,5 +23,10 @@ enum BookingStatus: string
     public function isPaid(): bool
     {
         return in_array($this, [self::Paid, self::Confirmed, self::Completed, self::PartiallyRefunded], true);
+    }
+
+    public function getLabel(): string
+    {
+        return $this->label();
     }
 }

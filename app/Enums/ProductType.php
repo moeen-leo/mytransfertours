@@ -2,7 +2,9 @@
 
 namespace App\Enums;
 
-enum ProductType: string
+use Filament\Support\Contracts\HasLabel;
+
+enum ProductType: string implements HasLabel
 {
     case Transfer = 'transfer';
     case Tour = 'tour';
@@ -25,5 +27,10 @@ enum ProductType: string
             self::Tour => 'R',
             self::Attraction => 'A',
         };
+    }
+
+    public function getLabel(): string
+    {
+        return $this->label();
     }
 }

@@ -2,7 +2,10 @@
 
 namespace App\Console\Commands;
 
+use App\Enums\UserRole;
+use App\Models\User;
 use Illuminate\Console\Command;
+use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Log;
 
@@ -49,6 +52,14 @@ class PostDeploy extends Command
             // First deploy only: load Malaysia starter data (cities, locations, vehicles).
             if (\App\Models\Country::query()->doesntExist()) {
                 Artisan::call('db:seed', ['--class' => 'MalaysiaStarterSeeder', '--force' => true]);
+                $this->info('Loaded Malaysia starter data');
+            }
+
+            $this->ensureFirstAdmin();
+
+            $uploads = (string) config('filesystems.disks.uploads.root');
+            if ($uploads !== '' && ! is_dir($uploads)) {
+                @mkdir($uploads, 0755, true);
             }
 
             Artisan::call('optimize:clear');
@@ -63,7 +74,34 @@ class PostDeploy extends Command
 
         file_put_contents($doneFile, $build);
         Log::info('Post-deploy finished', ['build' => $build]);
+        $this->info('Done.');
 
         return self::SUCCESS;
+    }
+
+    /**
+     * If no admin exists and ADMIN_EMAIL is set, create the first admin with a random
+     * password and print it once. Never touches an existing admin.
+     */
+    private function ensureFirstAdmin(): void
+    {
+        $email = trim((string) config('admin.email'));
+
+        if ($email === '' || User::query()->where('role', UserRole::Admin)->exists()) {
+            return;
+        }
+
+        $password = Str::password(16, symbols: false);
+
+        $user = User::query()->firstOrNew(['email' => $email]);
+        $user->name = $user->name ?: Str::before($email, '@');
+        $user->password = $password;
+        $user->email_verified_at ??= now();
+        $user->role = UserRole::Admin;   // not mass-assignable on purpose
+        $user->save();
+
+        $this->warn("Admin account created: {$email}");
+        $this->warn("Temporary password:   {$password}");
+        $this->warn('Change it after logging in (top-right menu > Profile).');
     }
 }

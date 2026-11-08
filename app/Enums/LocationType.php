@@ -2,7 +2,9 @@
 
 namespace App\Enums;
 
-enum LocationType: string
+use Filament\Support\Contracts\HasLabel;
+
+enum LocationType: string implements HasLabel
 {
     case Airport = 'airport';
     case CityArea = 'city_area';
@@ -15,5 +17,10 @@ enum LocationType: string
     public function label(): string
     {
         return ucwords(str_replace('_', ' ', $this->value));
+    }
+
+    public function getLabel(): string
+    {
+        return $this->label();
     }
 }

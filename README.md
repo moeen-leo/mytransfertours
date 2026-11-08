@@ -34,7 +34,6 @@ php artisan serve
 
 | Package | Used for |
 |---|---|
-| `filament/filament` | Admin panel (catalogue, bookings, suppliers, email templates) |
 | `laravel/socialite` | Google sign-in |
 | `stripe/stripe-php` | Stripe Checkout sessions, webhooks, refunds |
 | `barryvdh/laravel-dompdf` | Customer voucher PDFs |
@@ -43,7 +42,7 @@ php artisan serve
 
 1. ~~Database layer~~
 2. ~~Laravel base + Hostinger auto-deploy~~
-3. Admin panel (Filament): locations, vehicles, suppliers, routes and prices, tours, attractions, pricing rules
+3. ~~Admin panel (Filament): locations, vehicles, suppliers, routes and prices, tours, attractions, add-ons, pricing rules, promo codes, team~~
 4. Pricing service and cart
 5. Customer pages: home, transfer, tour and ticket flows, checkout
 6. Sign-up with email and Google

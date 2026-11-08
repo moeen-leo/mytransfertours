@@ -43,6 +43,8 @@ while (($parent = dirname($dir)) !== $dir) {
     foreach ([$parent.'/mtt-config/'.$site, $parent.'/mtt-config'] as $envDir) {
         if (is_file($envDir.'/.env')) {
             $app->useEnvironmentPath($envDir);
+            // Uploaded images live beside it in <ancestor>/mtt-uploads/<site>, so redeploys never delete them.
+            $_SERVER['MTT_UPLOADS_PATH'] = $parent.'/mtt-uploads/'.$site;
             break 2;
         }
     }

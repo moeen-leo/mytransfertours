@@ -3,11 +3,13 @@
 namespace App\Models;
 
 use App\Enums\UserRole;
+use Filament\Models\Contracts\FilamentUser;
+use Filament\Panel;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-class User extends Authenticatable
+class User extends Authenticatable implements FilamentUser
 {
     use Notifiable;
 
@@ -52,5 +54,11 @@ class User extends Authenticatable
     public function isStaff(): bool
     {
         return in_array($this->role, [UserRole::Admin, UserRole::Staff], true);
+    }
+
+    /** Only admin and staff accounts can open the admin panel; customers are refused. */
+    public function canAccessPanel(Panel $panel): bool
+    {
+        return $this->isStaff();
     }
 }
