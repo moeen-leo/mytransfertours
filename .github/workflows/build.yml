@@ -5,11 +5,12 @@ name: Build for Hostinger
 # ready-to-run copy (with vendor/) to a build branch:
 #   develop -> build-dev   (dev.mytransfertours.com)
 #   main    -> build-main  (live site, at launch)
+#   others  -> build-wip   (test builds, never deployed)
 # Hostinger is connected to the build branch, not to develop/main.
 
 on:
   push:
-    branches: [develop, main]
+    branches: ['**', '!build-*']
   workflow_dispatch:
 
 permissions:
@@ -49,7 +50,7 @@ jobs:
 
       - name: Push ready-to-run build
         run: |
-          if [ "${GITHUB_REF_NAME}" = "develop" ]; then TARGET="build-dev"; else TARGET="build-${GITHUB_REF_NAME}"; fi
+          case "${GITHUB_REF_NAME}" in develop) TARGET="build-dev" ;; main) TARGET="build-main" ;; *) TARGET="build-wip" ;; esac
           git config user.name  "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git checkout --orphan "$TARGET-tmp"
