@@ -18,3 +18,6 @@ Schedule::command('queue:work --stop-when-empty --max-time=50 --tries=3')
 // Exchange rates (base MYR) from the European Central Bank; the command itself only
 // fetches once per new ECB publication (weekdays after 16:30 CET), so every tick is cheap.
 Schedule::command('app:update-exchange-rates')->everyMinute()->withoutOverlapping();
+
+// Chase suppliers who haven't confirmed (the command decides who is due).
+Schedule::command('app:supplier-reminders')->everyMinute()->withoutOverlapping();

@@ -35,9 +35,10 @@
                 </select>
                 <noscript><button class="btn small ghost">Set</button></noscript>
             </form>
-            @auth
+            @auth('web')
                 <a href="{{ route('account.bookings') }}" class="btn small ghost">My bookings</a>
             @else
+                <a href="{{ route('manage.findForm') }}" class="btn small ghost">Find my booking</a>
                 <a href="{{ route('login') }}" class="btn small ghost">Sign in</a>
             @endauth
             <a href="{{ route('trip') }}" class="btn small {{ $dark ? 'sun' : '' }}">My trip · {{ $cartCount }}</a>
@@ -57,7 +58,7 @@
         <span class="logo" style="color: #fff; font-size: 18px">mytransfertours</span>
         <span>Malaysia first. More countries soon.</span>
         <span>
-            @auth
+            @auth('web')
                 <form method="post" action="{{ route('logout') }}" style="display: inline">@csrf<button class="link-btn" style="color: #C9D3CE">Sign out</button></form>
             @endauth
         </span>

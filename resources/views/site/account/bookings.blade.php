@@ -9,6 +9,13 @@
         <span class="muted small">{{ $user->email }}</span>
     </div>
 
+    @unless ($user->hasVerifiedEmail())
+        <div class="alert info row between">
+            <span>Confirm your email to also see bookings you made as a guest with {{ $user->email }}.</span>
+            <form method="post" action="{{ route('verification.send') }}">@csrf<button class="btn small ghost">Resend confirmation email</button></form>
+        </div>
+    @endunless
+
     @if ($user->credit_enabled)
         <div class="card pad row between">
             <div><span class="label">Credit account</span><p><b>{{ $user->company_name ?: $user->name }}</b> · {{ $user->credit_terms_days }}-day terms</p></div>

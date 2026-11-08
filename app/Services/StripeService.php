@@ -134,6 +134,10 @@ class StripeService
             return true;
         });
 
+        if ($changed) {
+            app(BookingMailer::class)->bookingPlaced($booking->fresh(['items']));
+        }
+
         return $changed;
     }
 

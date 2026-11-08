@@ -26,6 +26,7 @@ class AdminPanelProvider extends PanelProvider
             ->default()
             ->id('admin')
             ->path(config('admin.path', 'admin'))
+            ->authGuard('admin')
             ->login()
             ->profile()                       // lets each admin change their own password
             ->brandName('mytransfertours · admin')

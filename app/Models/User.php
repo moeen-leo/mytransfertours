@@ -4,12 +4,13 @@ namespace App\Models;
 
 use App\Enums\UserRole;
 use Filament\Models\Contracts\FilamentUser;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Filament\Panel;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-class User extends Authenticatable implements FilamentUser
+class User extends Authenticatable implements FilamentUser, MustVerifyEmail
 {
     use Notifiable;
 
@@ -80,6 +81,22 @@ class User extends Authenticatable implements FilamentUser
         $available = $this->creditAvailable();
 
         return $available === null || $amount <= $available;
+    }
+
+    /**
+     * Attaches bookings made as a guest with this email to the account. Only for
+     * confirmed email addresses, so nobody can claim someone else's bookings.
+     */
+    public function claimGuestBookings(): int
+    {
+        if (! $this->hasVerifiedEmail()) {
+            return 0;
+        }
+
+        return Booking::query()
+            ->whereNull('user_id')
+            ->whereRaw('LOWER(email) = ?', [mb_strtolower($this->email)])
+            ->update(['user_id' => $this->id]);
     }
 
     public function isAdmin(): bool

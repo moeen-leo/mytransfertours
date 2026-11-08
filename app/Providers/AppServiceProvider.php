@@ -51,6 +51,13 @@ class AppServiceProvider extends ServiceProvider
             ]);
         });
 
+        // Customer confirmed their email: their earlier guest bookings appear under "My bookings".
+        Event::listen(\Illuminate\Auth\Events\Verified::class, function ($event) {
+            if ($event->user instanceof \App\Models\User) {
+                $event->user->claimGuestBookings();
+            }
+        });
+
         Event::listen(Login::class, function (Login $event) {
             if ($event->user instanceof \App\Models\User) {
                 $event->user->forceFill(['last_login_at' => now()])->saveQuietly();

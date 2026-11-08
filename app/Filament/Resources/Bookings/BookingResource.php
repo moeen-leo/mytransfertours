@@ -121,7 +121,8 @@ class BookingResource extends Resource
                                 ->formatStateUsing(fn (BookingItem $i) => $i->service_date->format('D j M Y').($i->service_time ? ' · '.substr((string) $i->service_time, 0, 5) : '')),
                             TextEntry::make('supplier_name')->label('Supplier')
                                 ->helperText(fn (BookingItem $i) => $i->supplier_email),
-                            TextEntry::make('status')->badge(),
+                            TextEntry::make('status')->badge()
+                                ->helperText(fn (BookingItem $i) => $i->transfer?->driver_name ? 'Driver: '.collect([$i->transfer->driver_name, $i->transfer->driver_phone, $i->transfer->vehicle_plate])->filter()->join(' · ') : ($i->supplier_notes ? 'Supplier: '.$i->supplier_notes : null)),
                             TextEntry::make('selling_total')->label('Price')
                                 ->formatStateUsing(fn ($state, BookingItem $i) => static::money($i->booking, $state))
                                 ->helperText(fn (BookingItem $i) => 'Cost MYR '.number_format((float) $i->cost_total, 2)),
@@ -152,6 +153,44 @@ class BookingResource extends Resource
                     TextEntry::make('billing_company')->label('Bill to')
                         ->formatStateUsing(fn (Booking $r) => $r->billing_company ?: $r->lead_name)
                         ->helperText(fn (Booking $r) => trim(($r->billing_address ? $r->billing_address : '').($r->billing_tax_number ? "\nTax no. ".$r->billing_tax_number : '')) ?: null),
+                ]),
+
+            Section::make('Change requests')
+                ->columnSpanFull()
+                ->visible(fn (Booking $r) => $r->changeRequests->isNotEmpty())
+                ->schema([
+                    RepeatableEntry::make('changeRequests')
+                        ->hiddenLabel()
+                        ->columns(5)
+                        ->schema([
+                            TextEntry::make('created_at')->label('Asked')->since(),
+                            TextEntry::make('item.reference')->label('Item')->placeholder('Whole booking'),
+                            TextEntry::make('requested_date')->label('New date / time')
+                                ->formatStateUsing(fn ($state, $record) => trim(($record->requested_date?->format('D j M Y') ?? '').' '.($record->requested_time ? substr((string) $record->requested_time, 0, 5) : '')) ?: '—'),
+                            TextEntry::make('message')->placeholder('—'),
+                            TextEntry::make('status')->badge()
+                                ->color(fn (string $state) => ['pending' => 'warning', 'approved' => 'success', 'declined' => 'gray'][$state] ?? 'gray')
+                                ->helperText(fn ($record) => $record->admin_note),
+                        ]),
+                ]),
+
+            Section::make('Emails')
+                ->columnSpanFull()
+                ->collapsible()
+                ->schema([
+                    RepeatableEntry::make('emailLogs')
+                        ->hiddenLabel()
+                        ->columns(5)
+                        ->schema([
+                            TextEntry::make('created_at')->label('When')->dateTime('j M, H:i'),
+                            TextEntry::make('type')->formatStateUsing(fn (string $state) => ucfirst(str_replace('_', ' ', $state)))
+                                ->helperText(fn ($record) => $record->trigger === 'manual' ? 'sent manually' : null),
+                            TextEntry::make('recipient')->label('To'),
+                            TextEntry::make('subject')->columnSpan(1),
+                            TextEntry::make('status')->badge()
+                                ->color(fn (string $state) => ['sent' => 'success', 'failed' => 'danger', 'queued' => 'gray'][$state] ?? 'gray')
+                                ->helperText(fn ($record) => $record->error ? \Illuminate\Support\Str::limit($record->error, 120) : null),
+                        ]),
                 ]),
 
             Section::make('Internal notes')

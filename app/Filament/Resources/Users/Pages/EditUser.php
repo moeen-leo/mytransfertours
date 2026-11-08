@@ -21,7 +21,7 @@ class EditUser extends EditRecord
     /** `role` is not mass-assignable on the model, so set it explicitly here. */
     protected function handleRecordUpdate(Model $record, array $data): Model
     {
-        if (array_key_exists('role', $data) && $record->getKey() !== auth()->id()) {
+        if (array_key_exists('role', $data) && $record->getKey() !== \Filament\Facades\Filament::auth()->id()) {
             $record->role = $data['role'];
         }
         unset($data['role']);

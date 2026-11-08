@@ -15,9 +15,10 @@ class InvoiceController extends Controller
 {
     public function show(Request $request, Booking $booking): View
     {
-        $user = $request->user();
+        $staff = $request->user('admin');
+        $customer = $request->user('web');
 
-        abort_unless($user && ($user->isStaff() || $booking->user_id === $user->id), 403);
+        abort_unless(($staff && $staff->isStaff()) || ($customer && $booking->user_id === $customer->id), 403);
         abort_unless(filled($booking->invoice_number), 404);
 
         $booking->load(['items.transfer', 'items.tour', 'items.tickets', 'items.extras']);

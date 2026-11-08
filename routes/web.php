@@ -32,19 +32,36 @@ Route::get('/checkout/{booking}/cancelled', [CheckoutController::class, 'cancell
 // Stripe calls this after payments (signature-checked; CSRF is excluded in bootstrap/app.php).
 Route::post('/stripe/webhook', \App\Http\Controllers\StripeWebhookController::class)->name('stripe.webhook');
 
-Route::middleware('guest')->group(function () {
+// Manage my booking (works for guests): private link from the email, or reference + email.
+Route::get('/find-booking', [\App\Http\Controllers\Site\ManageBookingController::class, 'findForm'])->name('manage.findForm');
+Route::post('/find-booking', [\App\Http\Controllers\Site\ManageBookingController::class, 'find'])->middleware('throttle:20,1')->name('manage.find');
+Route::get('/my-booking/{token}', [\App\Http\Controllers\Site\ManageBookingController::class, 'show'])->name('manage.show');
+Route::post('/my-booking/{token}/items/{item}', [\App\Http\Controllers\Site\ManageBookingController::class, 'update'])->whereNumber('item')->middleware('throttle:20,1')->name('manage.update');
+Route::post('/my-booking/{token}/change', [\App\Http\Controllers\Site\ManageBookingController::class, 'requestChange'])->middleware('throttle:10,1')->name('manage.change');
+Route::get('/my-booking/{token}/invoice', [\App\Http\Controllers\Site\ManageBookingController::class, 'invoice'])->name('manage.invoice');
+
+Route::middleware('guest:web')->group(function () {
     Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
     Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:20,1');
     Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
     Route::post('/register', [AuthController::class, 'register'])->middleware('throttle:10,1');
 });
-Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth')->name('logout');
+Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:web')->name('logout');
 
-Route::middleware('auth')->group(function () {
+Route::middleware('auth:web')->group(function () {
     Route::get('/account/bookings', [AccountController::class, 'bookings'])->name('account.bookings');
-    // Printable invoice. Staff see any; customers only their own.
-    Route::get('/invoices/{booking}', [InvoiceController::class, 'show'])->name('invoices.show');
+    Route::get('/email/verify', [AuthController::class, 'verifyNotice'])->name('verification.notice');
+    Route::get('/email/verify/{id}/{hash}', [AuthController::class, 'verify'])->middleware('signed')->name('verification.verify');
+    Route::post('/email/verification-notification', [AuthController::class, 'resendVerification'])->middleware('throttle:6,1')->name('verification.send');
 });
+
+// Printable invoice. Staff (admin login) see any; customers (website login) only their own.
+Route::get('/invoices/{booking}', [InvoiceController::class, 'show'])->middleware('auth:admin,web')->name('invoices.show');
+
+// ---- Supplier one-click page (link in supplier emails; token-protected, no login) ----
+Route::get('/supplier/{item}/{token}', [\App\Http\Controllers\SupplierBookingController::class, 'show'])->whereNumber('item')->name('supplier.show');
+Route::post('/supplier/{item}/{token}/confirm', [\App\Http\Controllers\SupplierBookingController::class, 'confirm'])->whereNumber('item')->middleware('throttle:20,1')->name('supplier.confirm');
+Route::post('/supplier/{item}/{token}/decline', [\App\Http\Controllers\SupplierBookingController::class, 'decline'])->whereNumber('item')->middleware('throttle:20,1')->name('supplier.decline');
 
 // ---- Plumbing ----
 // Uploaded images (vehicles, tours, attractions, cities).

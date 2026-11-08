@@ -19,6 +19,8 @@ class Booking extends Model
 
     protected $guarded = ['id'];
 
+    protected $hidden = ['manage_token'];
+
     protected $casts = [
         'status' => BookingStatus::class,
         'payment_method' => PaymentMethod::class,
@@ -41,6 +43,7 @@ class Booking extends Model
     {
         static::creating(function (Booking $booking) {
             $booking->reference ??= static::nextReference();
+            $booking->manage_token ??= \Illuminate\Support\Str::random(48);
         });
     }
 
@@ -141,6 +144,17 @@ class Booking extends Model
         return $this->hasMany(Refund::class);
     }
 
+    public function changeRequests(): HasMany
+    {
+        return $this->hasMany(BookingChangeRequest::class)->latest();
+    }
+
+    /** The customer's private link to view and manage this booking (no login needed). */
+    public function manageUrl(): string
+    {
+        return route('manage.show', ['token' => $this->manage_token]);
+    }
+
     public function getLeadNameAttribute(): string
     {
         return trim($this->lead_first_name.' '.$this->lead_last_name);
@@ -170,7 +184,7 @@ class Booking extends Model
     {
         return $this->activities()->create([
             'booking_item_id' => $itemId,
-            'user_id' => $userId ?? auth()->id(),
+            'user_id' => $userId ?? auth('admin')->id() ?? auth('web')->id(),
             'type' => $type,
             'description' => $description,
             'meta' => $meta ?: null,

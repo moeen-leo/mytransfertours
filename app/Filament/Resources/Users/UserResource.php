@@ -36,13 +36,13 @@ class UserResource extends Resource
 
     public static function canViewAny(): bool
     {
-        return auth()->user()?->isAdmin() ?? false;
+        return \Filament\Facades\Filament::auth()->user()?->isAdmin() ?? false;
     }
 
     public static function canDelete(Model $record): bool
     {
         // Never let an admin delete their own account and lock everyone out.
-        return static::canViewAny() && $record->getKey() !== auth()->id();
+        return static::canViewAny() && $record->getKey() !== \Filament\Facades\Filament::auth()->id();
     }
 
     public static function form(Schema $schema): Schema
@@ -56,7 +56,7 @@ class UserResource extends Resource
                     ->default(UserRole::Staff)
                     ->required()
                     // An admin cannot demote themselves.
-                    ->disabled(fn (?User $record) => $record?->getKey() === auth()->id()),
+                    ->disabled(fn (?User $record) => $record?->getKey() === \Filament\Facades\Filament::auth()->id()),
                 TextInput::make('password')
                     ->password()->revealable()
                     ->rule(\Illuminate\Validation\Rules\Password::min(10))

@@ -34,8 +34,9 @@
         @endif
 
         <div class="row">
-            @auth
-                <a href="{{ route('account.bookings') }}" class="btn">My bookings</a>
+            <a href="{{ $booking->manageUrl() }}" class="btn">Manage my booking</a>
+            @auth('web')
+                <a href="{{ route('account.bookings') }}" class="btn ghost">My bookings</a>
                 @if ($booking->invoice_number)<a href="{{ route('invoices.show', $booking) }}" class="btn ghost" target="_blank" rel="noopener">View invoice</a>@endif
             @endauth
             <a href="{{ route('home') }}" class="btn ghost">Back to home</a>

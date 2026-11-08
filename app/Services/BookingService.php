@@ -23,7 +23,7 @@ use Illuminate\Validation\ValidationException;
  */
 class BookingService
 {
-    public function __construct(private TransferQuoter $transfers, private CartService $cart) {}
+    public function __construct(private TransferQuoter $transfers, private CartService $cart, private BookingMailer $mailer) {}
 
     /**
      * Re-prices every item in the cart.
@@ -78,7 +78,7 @@ class BookingService
                 .$currency->format((float) $available).'). Please pay by card or contact us to raise your limit.']);
         }
 
-        return DB::transaction(function () use ($lines, $itemTotals, $lead, $user, $method, $currency, $rate, $total, $costTotal, $cart) {
+        $booking = DB::transaction(function () use ($lines, $itemTotals, $lead, $user, $method, $currency, $rate, $total, $costTotal, $cart) {
             $booking = new Booking;
             $booking->forceFill([
                 'user_id' => $user?->id,
@@ -171,5 +171,13 @@ class BookingService
 
             return $booking->fresh(['items']);
         });
+
+        // On account = booked straight away: email the customer and every supplier.
+        // (Card bookings are emailed once Stripe confirms payment.)
+        if ($method === PaymentMethod::Credit) {
+            $this->mailer->bookingPlaced($booking);
+        }
+
+        return $booking;
     }
 }

@@ -34,7 +34,7 @@ class CompanySettings extends Page
 
     public static function canAccess(): bool
     {
-        return auth()->user()?->isAdmin() ?? false;
+        return \Filament\Facades\Filament::auth()->user()?->isAdmin() ?? false;
     }
 
     public function mount(): void

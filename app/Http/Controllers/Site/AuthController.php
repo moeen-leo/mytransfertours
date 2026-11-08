@@ -38,7 +38,7 @@ class AuthController extends Controller
             throw ValidationException::withMessages(['email' => 'Too many attempts. Please try again in '.RateLimiter::availableIn($key).' seconds.']);
         }
 
-        if (! Auth::attempt($credentials, $request->boolean('remember'))) {
+        if (! Auth::guard('web')->attempt($credentials, $request->boolean('remember'))) {
             RateLimiter::hit($key, 60);
             throw ValidationException::withMessages(['email' => 'That email and password don\'t match.']);
         }
@@ -74,16 +74,21 @@ class AuthController extends Controller
         $user->role = UserRole::Customer;
         $user->save();
 
-        Auth::login($user, true);
+        try {
+            event(new \Illuminate\Auth\Events\Registered($user));   // sends the "confirm your email" message
+        } catch (\Throwable $e) {
+            report($e);   // a mail problem must never block sign-up; they can resend later
+        }
+        Auth::guard('web')->login($user, true);
         $this->afterLogin($request);
 
-        return redirect()->intended(route('home'))->with('status', 'Your account is ready.');
+        return redirect()->intended(route('home'))->with('status', 'Your account is ready. We\'ve emailed you a link to confirm your address.');
     }
 
     public function logout(Request $request): RedirectResponse
     {
-        Auth::logout();
-        $request->session()->invalidate();
+        // Only the website login; an admin session in the same browser stays signed in.
+        Auth::guard('web')->logout();
         $request->session()->regenerateToken();
 
         return redirect()->route('home');
@@ -92,6 +97,34 @@ class AuthController extends Controller
     private function afterLogin(Request $request): void
     {
         $this->cart->mergeGuestCartInto($request->user());
+        $request->user()->claimGuestBookings();   // only if their email is confirmed
         $request->session()->regenerate();
+    }
+
+    public function verifyNotice(): View
+    {
+        return view('site.auth.verify');
+    }
+
+    public function verify(\Illuminate\Foundation\Auth\EmailVerificationRequest $request): RedirectResponse
+    {
+        $request->fulfill();   // fires Verified -> earlier guest bookings are linked
+
+        return redirect()->route('account.bookings')->with('status', 'Email confirmed. Any bookings you made with it are now in your account.');
+    }
+
+    public function resendVerification(Request $request): RedirectResponse
+    {
+        if (! $request->user()->hasVerifiedEmail()) {
+            try {
+                $request->user()->sendEmailVerificationNotification();
+            } catch (\Throwable $e) {
+                report($e);
+
+                return back()->withErrors(['email' => 'We couldn\'t send the email just now. Please try again later.']);
+            }
+        }
+
+        return back()->with('status', 'We\'ve sent you a new confirmation link.');
     }
 }
