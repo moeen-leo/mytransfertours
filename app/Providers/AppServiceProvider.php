@@ -5,6 +5,7 @@ namespace App\Providers;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\View;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
@@ -40,6 +41,15 @@ class AppServiceProvider extends ServiceProvider
         if ($this->app->isProduction()) {
             URL::forceScheme('https');
         }
+
+        // Header data for every website page: currency switcher and the "My trip" count.
+        View::composer(['layouts.site', 'site.*'], function ($view) {
+            $view->with([
+                'siteCurrencies' => collect(\App\Models\Currency::activeMap())->values(),
+                'siteCurrency' => \App\Support\Money::current(),
+                'cartCount' => app(\App\Services\CartService::class)->count(),
+            ]);
+        });
 
         Event::listen(Login::class, function (Login $event) {
             if ($event->user instanceof \App\Models\User) {

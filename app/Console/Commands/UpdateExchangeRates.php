@@ -15,8 +15,9 @@ use Illuminate\Support\Facades\Log;
  * auto_update on are touched. If the service is unreachable nothing changes,
  * so prices keep using the last known rate.
  *
- * Runs from the scheduler on every cron tick but only fetches when the
- * rates are older than 12 hours (Hostinger's cron is hourly at best).
+ * Runs from the scheduler on every cron tick but only fetches when a newer
+ * ECB publication exists than the one we have (weekdays ~16:00 CET; we wait
+ * until 16:30 CET), so new rates arrive within an hour of being published.
  */
 class UpdateExchangeRates extends Command
 {
@@ -24,7 +25,19 @@ class UpdateExchangeRates extends Command
 
     protected $description = 'Update exchange rates (base MYR) from the European Central Bank';
 
-    private const STALE_AFTER_HOURS = 12;
+    /** The most recent ECB publication time we should have: last weekday at 16:30 Frankfurt time. */
+    public static function lastPublication(): \Carbon\CarbonImmutable
+    {
+        $t = now('Europe/Berlin')->toImmutable()->setTime(16, 30);
+        if ($t->isFuture()) {
+            $t = $t->subDay();
+        }
+        while ($t->isWeekend()) {
+            $t = $t->subDay();
+        }
+
+        return $t;
+    }
 
     public function handle(): int
     {
@@ -37,8 +50,9 @@ class UpdateExchangeRates extends Command
             return self::SUCCESS;
         }
 
+        $since = self::lastPublication();
         $fresh = $targets->every(fn (Currency $c) => $c->rate_source === 'ecb'
-            && $c->rate_updated_at?->gt(now()->subHours(self::STALE_AFTER_HOURS)));
+            && $c->rate_updated_at?->gte($since));
 
         if ($fresh && ! $this->option('force')) {
             return self::SUCCESS;
