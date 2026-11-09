@@ -14,4 +14,11 @@ return [
     | password once. Change it after the first login (top-right > Profile).
     */
     'email' => env('ADMIN_EMAIL'),
+
+    /*
+    | Optional: limit "Sign in with Google" on the admin login to one company
+    | domain, e.g. ADMIN_GOOGLE_DOMAIN=mytransfertours.com. Empty = any Google
+    | account, as long as its email belongs to an Admin or Staff user.
+    */
+    'google_domain' => trim((string) env('ADMIN_GOOGLE_DOMAIN', ''), '@ '),
 ];

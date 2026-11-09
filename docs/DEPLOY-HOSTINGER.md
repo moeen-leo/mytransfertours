@@ -66,7 +66,11 @@ The "Continue with Google" button appears on the sign-in and sign-up pages only 
 2. **APIs & Services → OAuth consent screen**: user type **External**, app name *MyTransferTours*, support email, logo optional. Scopes: just the defaults (`email`, `profile`, `openid`). Click **Publish app** so anyone can sign in (no Google review is needed for these basic scopes).
 3. **APIs & Services → Credentials → Create credentials → OAuth client ID** → *Web application*.
    - **Authorised JavaScript origins:** `https://dev.mytransfertours.com` (and `https://mytransfertours.com` for live)
-   - **Authorised redirect URIs:** `https://dev.mytransfertours.com/auth/google/callback` (and `https://mytransfertours.com/auth/google/callback`)
+   - **Authorised redirect URIs** (website and admin login, for each site):
+     - `https://dev.mytransfertours.com/auth/google/callback`
+     - `https://dev.mytransfertours.com/auth/google/admin-callback`
+     - `https://mytransfertours.com/auth/google/callback`
+     - `https://mytransfertours.com/auth/google/admin-callback`
 4. Copy the **Client ID** and **Client secret** into `.env`:
 
 ```
@@ -76,7 +80,9 @@ GOOGLE_CLIENT_SECRET=GOCSPX-xxxxxxxx
 
 `GOOGLE_REDIRECT_URI` can stay as in `.env.example` (or be left out: it defaults to `APP_URL/auth/google/callback`). Then open the post-deploy link `/_deploy/<token>` so the cached config picks up the new values.
 
-How accounts are matched: a Google sign-in with an email that already has an account signs into that account (Google has confirmed the email, so it also counts as email verification and brings in earlier guest bookings). A new email creates a customer account with no password.
+**Admin login:** the admin login page gets a "Sign in with Google" button too. It only signs in people who already have an **Admin** or **Staff** account with that exact email (added under **Team → Users**); it never creates accounts, and customers or unknown Google accounts are refused. Password login stays as a backup. To allow only company addresses, set `ADMIN_GOOGLE_DOMAIN=mytransfertours.com`.
+
+How website accounts are matched: a Google sign-in with an email that already has an account signs into that account (Google has confirmed the email, so it also counts as email verification and brings in earlier guest bookings). A new email creates a customer account with no password.
 
 ## If something goes wrong
 

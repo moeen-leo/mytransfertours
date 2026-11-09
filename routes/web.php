@@ -58,6 +58,10 @@ Route::middleware('guest:web')->group(function () {
     Route::get('/auth/google', [AuthController::class, 'redirectToGoogle'])->middleware('throttle:30,1')->name('auth.google');
     Route::get('/auth/google/callback', [AuthController::class, 'handleGoogleCallback'])->middleware('throttle:30,1')->name('auth.google.callback');
 });
+// Admin "Sign in with Google": only existing Admin/Staff accounts (see AdminGoogleController).
+Route::get('/auth/google/admin', [\App\Http\Controllers\AdminGoogleController::class, 'redirect'])->middleware('throttle:30,1')->name('admin.google');
+Route::get('/auth/google/admin-callback', [\App\Http\Controllers\AdminGoogleController::class, 'callback'])->middleware('throttle:30,1')->name('admin.google.callback');
+
 Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:web')->name('logout');
 
 Route::middleware('auth:web')->group(function () {

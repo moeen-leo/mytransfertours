@@ -29,6 +29,10 @@ class AdminPanelProvider extends PanelProvider
             ->authGuard('admin')
             ->login()
             ->profile()                       // lets each admin change their own password
+            ->renderHook(
+                \Filament\View\PanelsRenderHook::AUTH_LOGIN_FORM_AFTER,
+                fn () => view('filament.admin-google-button'),   // "Sign in with Google" for existing team members
+            )
             ->brandName('mytransfertours · admin')
             ->colors([
                 'primary' => Color::hex('#0F4C3A'),
