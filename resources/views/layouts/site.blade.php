@@ -36,7 +36,23 @@
                 <noscript><button class="btn small ghost">Set</button></noscript>
             </form>
             @auth('web')
-                <a href="{{ route('account.bookings') }}" class="btn small ghost">My bookings</a>
+                @php($me = auth('web')->user())
+                <details class="account-menu">
+                    <summary class="btn small ghost" aria-label="Account menu">
+                        @if ($me->avatar)
+                            <img src="{{ $me->avatar }}" alt="" class="avatar" referrerpolicy="no-referrer">
+                        @else
+                            <span class="avatar initials" aria-hidden="true">{{ mb_strtoupper(mb_substr($me->name, 0, 1)) }}</span>
+                        @endif
+                        <span class="account-name">{{ \Illuminate\Support\Str::before($me->name, ' ') ?: $me->name }}</span>
+                        <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 4.5 6 8l3.5-3.5" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </summary>
+                    <div class="account-dropdown" role="menu">
+                        <div class="who"><b>{{ $me->name }}</b><span>{{ $me->email }}</span></div>
+                        <a href="{{ route('account.bookings') }}" role="menuitem">My bookings</a>
+                        <form method="post" action="{{ route('logout') }}">@csrf<button role="menuitem">Sign out</button></form>
+                    </div>
+                </details>
             @else
                 <a href="{{ route('manage.findForm') }}" class="btn small ghost">Find my booking</a>
                 <a href="{{ route('login') }}" class="btn small ghost">Sign in</a>
@@ -64,5 +80,10 @@
         </span>
     </div>
 </footer>
+<script>
+    // Close the account menu when clicking elsewhere or pressing Escape.
+    document.addEventListener('click', e => document.querySelectorAll('details.account-menu[open]').forEach(d => { if (!d.contains(e.target)) d.removeAttribute('open'); }));
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') document.querySelectorAll('details.account-menu[open]').forEach(d => d.removeAttribute('open')); });
+</script>
 </body>
 </html>

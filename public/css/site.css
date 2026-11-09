@@ -143,6 +143,21 @@ table.list td { padding: 14px 8px; border-bottom: 1px solid var(--line); vertica
 .site-footer .wrap { display: flex; justify-content: space-between; gap: 24px; flex-wrap: wrap; }
 .site-footer a { color: #C9D3CE; }
 
+/* Account menu in the header (signed in) */
+.account-menu { position: relative; }
+.account-menu > summary { list-style: none; padding-left: 6px; }
+.account-menu > summary::-webkit-details-marker { display: none; }
+.account-menu .avatar { width: 28px; height: 28px; border-radius: 50%; object-fit: cover; flex: none; }
+.account-menu .avatar.initials { display: inline-flex; align-items: center; justify-content: center; background: var(--sun); color: var(--ink); font-weight: 700; font-size: 13px; }
+.account-menu[open] > summary svg { transform: rotate(180deg); }
+.account-dropdown { position: absolute; right: 0; top: calc(100% + 8px); z-index: 50; min-width: 220px; background: #fff; color: var(--ink); border: 1px solid var(--line); border-radius: 12px; box-shadow: 0 12px 32px rgba(16,35,28,.14); padding: 6px; }
+.account-dropdown .who { display: flex; flex-direction: column; gap: 2px; padding: 10px 12px; border-bottom: 1px solid var(--line); margin-bottom: 4px; font-size: 14px; }
+.account-dropdown .who span { color: var(--muted); font-size: 13px; overflow-wrap: anywhere; }
+.account-dropdown a, .account-dropdown button { display: block; width: 100%; text-align: left; padding: 10px 12px; border-radius: 8px; background: none; border: 0; color: var(--ink); font: 500 14px var(--font); text-decoration: none; cursor: pointer; }
+.account-dropdown a:hover, .account-dropdown button:hover { background: rgba(0,0,0,.05); color: var(--ink); }
+.account-dropdown form { margin: 0; }
+@media (max-width: 640px) { .account-menu .account-name { display: none; } }
+
 @media (max-width: 640px) {
   .wrap { padding: 0 16px; }
   .vehicle { grid-template-columns: 1fr; }
