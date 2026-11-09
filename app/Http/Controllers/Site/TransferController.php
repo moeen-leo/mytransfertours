@@ -24,6 +24,10 @@ class TransferController extends Controller
     /** Step 1: vehicles and prices for a route. */
     public function search(Request $request): View|RedirectResponse
     {
+        if (! $request->filled('from_id')) {
+            return $this->landing();
+        }
+
         $data = $request->validate([
             'from_id' => ['required', 'integer'],
             'to_id' => ['required', 'integer', 'different:from_id'],
@@ -57,6 +61,24 @@ class TransferController extends Controller
             'locations' => HomeController::bookableLocations(),
             'tooSoon' => CarbonImmutable::createFromFormat('Y-m-d H:i', $data['date'].' '.$data['time'], config('app.timezone'))
                 ->lt(now()->addHours(TransferQuoter::MIN_HOURS_BEFORE)),
+        ]);
+    }
+
+    /** /transfers without a search: the search box plus popular routes with "from" prices. */
+    private function landing(): View
+    {
+        $routes = TransferRoute::query()
+            ->where('is_active', true)
+            ->whereHas('prices', fn ($q) => $q->where('is_active', true))
+            ->with(['from.city', 'to'])
+            ->withMin(['prices' => fn ($q) => $q->where('is_active', true)], 'selling_price')
+            ->orderBy('prices_min_selling_price')
+            ->limit(24)
+            ->get();
+
+        return view('site.transfers.index', [
+            'routes' => $routes,
+            'locations' => HomeController::bookableLocations(),
         ]);
     }
 
@@ -95,7 +117,7 @@ class TransferController extends Controller
             ...self::SEARCH_KEYS, 'vehicle_type_id', 'flight_number', 'pickup_address', 'dropoff_address', 'sign_name', 'driver_notes', 'extras',
         ]));
 
-        $this->cart->addTransfer($quote);
+        $this->cart->add($quote);
 
         return redirect()->route('trip')->with('status', 'Transfer added to your trip.');
     }

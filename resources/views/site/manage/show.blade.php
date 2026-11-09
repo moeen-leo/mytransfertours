@@ -64,6 +64,17 @@
                 </table>
             @endif
 
+            @if ($item->tour)
+                <table class="list">
+                    <tr><td class="muted" style="width: 170px">Option</td><td>{{ $item->tour->option === 'private' ? 'Private · '.$item->tour->vehicle_type_name : 'Seat-in-coach (shared)' }}</td></tr>
+                    <tr><td class="muted">People</td><td>{{ $item->tour->adults }} adults, {{ $item->tour->children }} children</td></tr>
+                    @if ($item->tour->pickup_hotel)<tr><td class="muted">Pick-up hotel</td><td>{{ $item->tour->pickup_hotel }}</td></tr>@endif
+                </table>
+            @endif
+            @if ($item->tickets->isNotEmpty())
+                <table class="list">@foreach ($item->tickets as $tk)<tr><td class="muted" style="width: 170px">Tickets</td><td>{{ $tk->quantity }} × {{ $tk->ticket_type_name }}</td></tr>@endforeach</table>
+            @endif
+
             @if ($editable[$item->id] ?? false)
                 <details>
                     <summary class="btn small ghost" style="display: inline-flex">Update details</summary>

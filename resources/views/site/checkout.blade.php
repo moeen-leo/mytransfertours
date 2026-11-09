@@ -78,7 +78,7 @@
             <div class="card summary">
                 <span class="label">Your trip</span>
                 @foreach ($lines as $line)
-                    <div class="sum-row"><span>{{ $line['quote']['title'] }}<br><span class="tiny muted">{{ $line['quote']['date']->format('D j M') }} · {{ $line['quote']['time'] }} · {{ $line['quote']['vehicle']->name }}</span></span><span>{{ Money::format($line['quote']['sell']) }}</span></div>
+                    <div class="sum-row"><span>{{ $line['quote']['title'] }}<br><span class="tiny muted">{{ $line['quote']['date']->format('D j M') }}{{ $line['quote']['time'] ? ' · '.$line['quote']['time'] : '' }} · {{ $line['quote']['summary'] }}</span></span><span>{{ Money::format($line['quote']['sell']) }}</span></div>
                 @endforeach
                 <div class="total-box"><b>Total</b><span class="price">{{ Money::format($total) }}</span></div>
                 @if ($hasCredit && $creditCurrency->code !== $siteCurrency->code)

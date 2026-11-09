@@ -33,13 +33,13 @@
                                 <div class="small muted">{{ substr((string) $item->service_time, 0, 5) }}</div>
                             </div>
                             <div class="stack" style="gap: 4px">
-                                <span class="chip" style="align-self: flex-start">{{ $item->product_type->getLabel() }}</span>
+                                <span class="chip {{ ['tour' => 'tour', 'attraction' => 'ticket'][$item->product_type->value] ?? '' }}" style="align-self: flex-start">{{ $item->product_type->getLabel() }}</span>
                                 @if ($q)
                                     <b>{{ $q['title'] }}</b>
-                                    <span class="small muted">{{ $q['vehicle']->name }} · {{ $p['adults'] + $p['children'] + $p['infants'] }} passengers · {{ $p['bags'] }} bags{{ $p['flight_number'] ? ' · flight '.$p['flight_number'] : '' }}</span>
+                                    <span class="small muted">{{ $q['summary'] }}</span>
                                     @foreach ($q['extras'] as $x)<span class="small muted">+ {{ $x['qty'] }} × {{ $x['extra']->name }}</span>@endforeach
-                                    @if ($p['pickup_address'])<span class="small muted">From: {{ $p['pickup_address'] }}</span>@endif
-                                    @if ($p['dropoff_address'])<span class="small muted">To: {{ $p['dropoff_address'] }}</span>@endif
+                                    @if (! empty($p['pickup_address']))<span class="small muted">From: {{ $p['pickup_address'] }}</span>@endif
+                                    @if (! empty($p['dropoff_address']))<span class="small muted">To: {{ $p['dropoff_address'] }}</span>@endif
                                     @if (abs($q['sell'] - (float) $item->quoted_price) >= 0.01)
                                         <span class="small" style="color: var(--coral)">Price updated since you added it.</span>
                                     @endif
@@ -53,7 +53,7 @@
                         </div>
                     @endforeach
                 </div>
-                <a href="{{ route('home') }}#search" class="small">+ Add another transfer</a>
+                <p class="small"><a href="{{ route('transfers.search') }}">+ Transfer</a> · <a href="{{ route('tours.index') }}">+ Tour</a> · <a href="{{ route('tickets.index') }}">+ Attraction tickets</a></p>
             @endif
         </section>
 

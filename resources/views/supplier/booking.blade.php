@@ -40,6 +40,12 @@
                     <tr><td class="muted">Sign</td><td>{{ $t->sign_name }}</td></tr>
                     @if ($t->driver_notes)<tr><td class="muted">Notes</td><td>{{ $t->driver_notes }}</td></tr>@endif
                 @endif
+                @if ($item->tour)
+                    <tr><td class="muted">Option</td><td>{{ $item->tour->option === 'private' ? 'Private · '.$item->tour->vehicle_type_name : 'Seat-in-coach (shared)' }}</td></tr>
+                    <tr><td class="muted">People</td><td>{{ $item->tour->adults }} adults, {{ $item->tour->children }} children</td></tr>
+                    @if ($item->tour->pickup_hotel)<tr><td class="muted">Pick-up hotel</td><td>{{ $item->tour->pickup_hotel }}</td></tr>@endif
+                @endif
+                @foreach ($item->tickets as $tk)<tr><td class="muted">Tickets</td><td>{{ $tk->quantity }} × {{ $tk->ticket_type_name }}</td></tr>@endforeach
                 @foreach ($item->extras as $x)<tr><td class="muted">Add-on</td><td>{{ $x->quantity }} × {{ $x->name }}</td></tr>@endforeach
                 <tr><td class="muted">Lead passenger</td><td>{{ $item->booking->lead_name }}{{ $item->booking->phone ? ' · '.$item->booking->phone : '' }}</td></tr>
                 <tr><td class="muted">Your rate (net)</td><td><b>MYR {{ number_format((float) $item->cost_total, 2) }}</b></td></tr>

@@ -16,7 +16,17 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', HomeController::class)->name('home');
 Route::post('/currency', CurrencyController::class)->name('currency.set');
 
-Route::get('/transfers', [TransferController::class, 'search'])->name('transfers.search');
+Route::get('/transfers', [TransferController::class, 'search'])->name('transfers.search');   // landing page when no search yet
+
+Route::get('/tours', [\App\Http\Controllers\Site\TourController::class, 'index'])->name('tours.index');
+Route::get('/tours/{tour:slug}', [\App\Http\Controllers\Site\TourController::class, 'show'])->name('tours.show');
+Route::get('/tours/{tour:slug}/quote', [\App\Http\Controllers\Site\TourController::class, 'quote'])->middleware('throttle:120,1')->name('tours.quote');
+Route::post('/tours/{tour:slug}', [\App\Http\Controllers\Site\TourController::class, 'add'])->name('tours.add');
+
+Route::get('/tickets', [\App\Http\Controllers\Site\AttractionController::class, 'index'])->name('tickets.index');
+Route::get('/tickets/{attraction:slug}', [\App\Http\Controllers\Site\AttractionController::class, 'show'])->name('tickets.show');
+Route::get('/tickets/{attraction:slug}/quote', [\App\Http\Controllers\Site\AttractionController::class, 'quote'])->middleware('throttle:120,1')->name('tickets.quote');
+Route::post('/tickets/{attraction:slug}', [\App\Http\Controllers\Site\AttractionController::class, 'add'])->name('tickets.add');
 Route::get('/transfers/book', [TransferController::class, 'details'])->name('transfers.details');
 Route::post('/transfers/book', [TransferController::class, 'add'])->name('transfers.add');
 

@@ -21,7 +21,7 @@ class SupplierBookingController extends Controller
     public function show(BookingItem $item, string $token): View
     {
         $this->authorizeLink($item, $token);
-        $item->load('booking', 'transfer', 'extras');
+        $item->load('booking', 'transfer', 'tour', 'tickets', 'extras');
 
         return view('supplier.booking', ['item' => $item, 'token' => $token, 'locked' => $this->locked($item)]);
     }
@@ -70,7 +70,7 @@ class SupplierBookingController extends Controller
 
         // Tell the customer when it's first confirmed, and again when driver details first appear.
         if (! $wasConfirmed || (! $hadDriver && $driverNow)) {
-            $this->mailer->customerItemConfirmed($item->fresh(['booking', 'transfer', 'extras']));
+            $this->mailer->customerItemConfirmed($item->fresh(['booking', 'transfer', 'tour', 'tickets', 'extras']));
         }
 
         return redirect()->route('supplier.show', ['item' => $item->id, 'token' => $token])

@@ -20,6 +20,8 @@
                     <div class="stack" style="gap: 4px">
                         <b>{{ $item->title }}</b>
                         @if ($item->transfer)<span class="small muted">{{ $item->transfer->vehicle_type_name }} · {{ $item->transfer->adults + $item->transfer->children + $item->transfer->infants }} passengers{{ $item->transfer->flight_number ? ' · flight '.$item->transfer->flight_number : '' }}</span>@endif
+                        @if ($item->tour)<span class="small muted">{{ $item->tour->option === 'private' ? 'Private · '.$item->tour->vehicle_type_name : 'Seat-in-coach' }} · {{ $item->tour->adults + $item->tour->children }} people</span>@endif
+                        @if ($item->tickets->isNotEmpty())<span class="small muted">{{ $item->tickets->map(fn ($t) => $t->quantity.' × '.$t->ticket_type_name)->join(', ') }}</span>@endif
                         <span class="small muted">{{ $item->reference }}</span>
                     </div>
                     <b>{{ Money::formatIn((float) $item->selling_total, $booking->currency) }}</b>

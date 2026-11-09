@@ -27,7 +27,7 @@ class BookingMailer
     /** A booking has just become Booked (paid by card or confirmed on account). */
     public function bookingPlaced(Booking $booking): void
     {
-        $booking->loadMissing('items.transfer', 'items.extras');
+        $booking->loadMissing('items.transfer', 'items.tour', 'items.tickets', 'items.extras');
 
         $this->customerConfirmation($booking);
 
@@ -40,7 +40,7 @@ class BookingMailer
 
     public function customerConfirmation(Booking $booking, string $trigger = 'automatic', ?int $by = null): EmailLog
     {
-        $booking->loadMissing('items.transfer', 'items.extras');
+        $booking->loadMissing('items.transfer', 'items.tour', 'items.tickets', 'items.extras');
 
         return $this->deliver($booking, null, 'customer_confirmation', $booking->email, [],
             new BookingMail("Booking confirmed: {$booking->reference}", 'mail.customer.confirmation', [
@@ -57,7 +57,7 @@ class BookingMailer
 
         return $this->deliver($booking, $item, 'customer_item_confirmed', $booking->email, [],
             new BookingMail("Confirmed: {$item->title} on {$item->service_date->format('j M')}", 'mail.customer.item-confirmed', [
-                'booking' => $booking, 'item' => $item->loadMissing('transfer'), 'company' => $this->company(),
+                'booking' => $booking, 'item' => $item->loadMissing('transfer', 'tour', 'tickets', 'extras'), 'company' => $this->company(),
             ], $this->company()['email']));
     }
 
@@ -86,7 +86,7 @@ class BookingMailer
 
     public function supplierNewBooking(BookingItem $item, string $trigger = 'automatic', ?int $by = null, bool $reminder = false): EmailLog
     {
-        $item->loadMissing('booking', 'transfer', 'extras', 'supplier');
+        $item->loadMissing('booking', 'transfer', 'tour', 'tickets', 'extras', 'supplier');
         $booking = $item->booking;
 
         $log = $this->deliver($booking, $item, $reminder ? 'supplier_reminder' : 'supplier_new_booking', (string) $item->supplier_email,

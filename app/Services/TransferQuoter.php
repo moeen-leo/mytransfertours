@@ -90,7 +90,15 @@ class TransferQuoter
             'extras' => collect($extras['lines'])->mapWithKeys(fn ($l) => [$l['extra']->id => $l['qty']])->all(),
         ];
 
+        $paxTotal = $adults + $children + $infants;
+
         return [
+            // Common keys every quoter returns (transfer, tour, attraction):
+            'type' => ProductType::Transfer,
+            'bookable' => $route,
+            'cancellation_hours' => (int) $route->cancellation_hours,
+            'summary' => $price->vehicleType->name.' · '.$paxTotal.' '.($paxTotal === 1 ? 'passenger' : 'passengers').' · '.$bags.' '.($bags === 1 ? 'bag' : 'bags').($payload['flight_number'] ? ' · flight '.$payload['flight_number'] : ''),
+            // Transfer-specific:
             'route' => $route,
             'from' => $from,
             'to' => $to,

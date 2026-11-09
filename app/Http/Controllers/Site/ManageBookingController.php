@@ -186,7 +186,7 @@ class ManageBookingController extends Controller
 
         return Booking::query()
             ->where('manage_token', $token)
-            ->with(['items.transfer.pickupLocation', 'items.transfer.dropoffLocation', 'items.extras', 'changeRequests'])
+            ->with(['items.transfer.pickupLocation', 'items.transfer.dropoffLocation', 'items.tour', 'items.tickets', 'items.extras', 'changeRequests'])
             ->firstOrFail();
     }
 

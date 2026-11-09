@@ -23,7 +23,13 @@ use Illuminate\Validation\ValidationException;
  */
 class BookingService
 {
-    public function __construct(private TransferQuoter $transfers, private CartService $cart, private BookingMailer $mailer) {}
+    public function __construct(
+        private TransferQuoter $transfers,
+        private TourQuoter $tours,
+        private TicketQuoter $tickets,
+        private CartService $cart,
+        private BookingMailer $mailer,
+    ) {}
 
     /**
      * Re-prices every item in the cart.
@@ -44,7 +50,8 @@ class BookingService
     {
         return match ($item->product_type) {
             ProductType::Transfer => $this->transfers->quote($item->payload),
-            default => throw ValidationException::withMessages(['cart' => 'This item type can\'t be booked yet.']),
+            ProductType::Tour => $this->tours->quote($item->payload),
+            ProductType::Attraction => $this->tickets->quote($item->payload),
         };
     }
 
@@ -114,8 +121,8 @@ class BookingService
                 $item = $booking->items()->create([
                     'reference' => $booking->reference.'-'.$letter.$counters[$letter],
                     'product_type' => $type,
-                    'bookable_type' => $quote['route']->getMorphClass(),
-                    'bookable_id' => $quote['route']->id,
+                    'bookable_type' => $quote['bookable']->getMorphClass(),
+                    'bookable_id' => $quote['bookable']->getKey(),
                     'title' => $quote['title'],
                     'service_date' => $quote['date']->format('Y-m-d'),
                     'service_time' => $quote['time'],
@@ -125,7 +132,7 @@ class BookingService
                     'cost_total' => $quote['cost'],
                     'selling_total' => $itemTotals[$i],
                     'status' => BookingItemStatus::Pending,
-                    'cancellation_deadline' => $quote['date']->setTimeFromTimeString($quote['time'])->subHours((int) $quote['route']->cancellation_hours),
+                    'cancellation_deadline' => $quote['date']->setTimeFromTimeString($quote['time'] ?? '00:00')->subHours((int) $quote['cancellation_hours']),
                 ]);
 
                 if ($type === ProductType::Transfer) {
@@ -147,6 +154,31 @@ class BookingService
                         'sign_name' => $p['sign_name'] ?: strtoupper($lead['first_name'].' '.$lead['last_name']),
                         'driver_notes' => $p['driver_notes'],
                     ]);
+                }
+
+                if ($type === ProductType::Tour) {
+                    $p = $quote['payload'];
+                    $item->tour()->create([
+                        'option' => $p['option'],
+                        'vehicle_type_id' => $quote['vehicle']?->id,
+                        'vehicle_type_name' => $quote['vehicle']?->name,
+                        'adults' => $p['adults'],
+                        'children' => $p['children'],
+                        'start_time' => $p['start_time'],
+                        'pickup_hotel' => $p['pickup_hotel'],
+                    ]);
+                }
+
+                if ($type === ProductType::Attraction) {
+                    foreach ($quote['lines'] as $ticketLine) {
+                        $item->tickets()->create([
+                            'attraction_ticket_type_id' => $ticketLine['type']->id,
+                            'ticket_type_name' => $ticketLine['label'],
+                            'quantity' => $ticketLine['qty'],
+                            'unit_cost' => $ticketLine['unit_cost'],
+                            'unit_price' => $currency->fromBase((float) $ticketLine['unit']),
+                        ]);
+                    }
                 }
 
                 foreach ($quote['extras'] as $extraLine) {

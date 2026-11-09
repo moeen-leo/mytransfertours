@@ -150,7 +150,7 @@ class CheckoutController extends Controller
     {
         abort_unless($request->hasValidSignature(), 403);
 
-        $booking = Booking::query()->where('reference', $booking)->with('items.transfer')->firstOrFail();
+        $booking = Booking::query()->where('reference', $booking)->with(['items.transfer', 'items.tour', 'items.tickets'])->firstOrFail();
 
         return view('site.confirmed', ['booking' => $booking]);
     }

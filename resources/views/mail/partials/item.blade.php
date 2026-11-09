@@ -34,9 +34,19 @@
 - Driver: {{ $driver }}
 @endif
 @endif
+@if ($item->tour)
+- Option: {{ $item->tour->option === 'private' ? 'Private · '.$item->tour->vehicle_type_name : 'Seat-in-coach (shared)' }}
+- People: {{ $item->tour->adults }} adult{{ $item->tour->adults == 1 ? '' : 's' }}{{ $item->tour->children ? ', '.$item->tour->children.' child'.($item->tour->children == 1 ? '' : 'ren') : '' }}
+@if ($item->tour->pickup_hotel)
+- Pick-up hotel: {{ $item->tour->pickup_hotel }}
+@endif
+@endif
+@foreach ($item->tickets as $tk)
+- Tickets: {{ $tk->quantity }} × {{ $tk->ticket_type_name }}
+@endforeach
 @foreach ($item->extras as $x)
 - Add-on: {{ $x->quantity }} × {{ $x->name }}
 @endforeach
 @if ($showPrice)
-- Price: {{ \App\Support\Money::formatIn((float) $item->selling_total, $item->booking->currency) }}
+- Price: {{ \App\Support\Money::formatIn((float) $item->selling_total, isset($booking) ? $booking->currency : $item->booking->currency) }}
 @endif

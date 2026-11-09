@@ -5,7 +5,7 @@
 Hi {{ $booking->lead_first_name }}, we've updated booking **{{ $booking->reference }}**.
 
 @if ($request->item)
-@include('mail.partials.item', ['item' => $request->item->fresh(['transfer', 'extras', 'booking']), 'showPrice' => false])
+@include('mail.partials.item', ['item' => $request->item->fresh(['transfer', 'tour', 'tickets', 'extras', 'booking']), 'showPrice' => false])
 @endif
 @else
 # About your change request

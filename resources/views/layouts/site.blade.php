@@ -20,9 +20,9 @@
             mytransfertours
         </a>
         <nav class="site-nav" aria-label="Main">
-            <a href="{{ route('home') }}#search">Transfers</a>
-            <a href="{{ route('home') }}#tours">Tours</a>
-            <a href="{{ route('home') }}#tickets">Attraction tickets</a>
+            <a href="{{ route('transfers.search') }}">Transfers</a>
+            <a href="{{ route('tours.index') }}">Tours</a>
+            <a href="{{ route('tickets.index') }}">Attraction tickets</a>
         </nav>
         <div class="header-actions">
             <form method="post" action="{{ route('currency.set') }}" class="currency-form">

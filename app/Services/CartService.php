@@ -41,16 +41,16 @@ class CartService
         return $this->current()?->items()->count() ?? 0;
     }
 
-    /** Adds a priced transfer quote (from TransferQuoter) to the trip. */
-    public function addTransfer(array $quote): CartItem
+    /** Adds a priced quote (from TransferQuoter, TourQuoter or TicketQuoter) to the trip. */
+    public function add(array $quote): CartItem
     {
         $cart = $this->current(create: true);
         $cart->update(['expires_at' => now()->addDays(14)]);
 
         return $cart->items()->create([
-            'product_type' => ProductType::Transfer,
-            'bookable_type' => $quote['route']->getMorphClass(),
-            'bookable_id' => $quote['route']->id,
+            'product_type' => $quote['type'],
+            'bookable_type' => $quote['bookable']->getMorphClass(),
+            'bookable_id' => $quote['bookable']->getKey(),
             'service_date' => $quote['date']->format('Y-m-d'),
             'service_time' => $quote['time'],
             'payload' => $quote['payload'],
@@ -58,6 +58,12 @@ class CartService
             'quoted_price' => $quote['sell'],
             'quoted_at' => now(),
         ]);
+    }
+
+    /** @deprecated use add() */
+    public function addTransfer(array $quote): CartItem
+    {
+        return $this->add($quote);
     }
 
     public function remove(int $itemId): void
