@@ -1,5 +1,7 @@
 @extends('layouts.site', ['darkHeader' => true])
 @push('head')
+<link rel="preload" as="image" href="{{ asset('img/hero-malaysia.jpg') }}" media="(min-width: 901px)">
+<link rel="preload" as="image" href="{{ asset('img/hero-malaysia-sm.jpg') }}" media="(max-width: 900px)">
 {{-- Keys are written '@'.'type' so Blade doesn't read them as its own @ commands. --}}
 <script type="application/ld+json">{!! json_encode([
     '@'.'context' => 'https://schema.org',
@@ -17,7 +19,7 @@
 @endphp
 
 @section('content')
-<section class="hero">
+<section class="hero" style="--hero-img: url('{{ asset('img/hero-malaysia.jpg') }}'); --hero-img-sm: url('{{ asset('img/hero-malaysia-sm.jpg') }}')">
     <div class="wrap hero-grid">
         <div class="stack" style="gap: 22px">
             <span class="chip" style="background: rgba(242,184,75,.18); color: #F7D58E; align-self: flex-start">Malaysia first · more countries soon</span>

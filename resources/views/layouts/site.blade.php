@@ -39,7 +39,7 @@
 </head>
 <body>
 @php($dark = $darkHeader ?? false)
-<header class="site-header {{ $dark ? '' : 'light' }}">
+<header class="site-header {{ $dark ? 'over-hero' : 'light' }}">
     <div class="wrap">
         <a href="{{ route('home') }}" class="logo">
             <svg width="32" height="32" viewBox="0 0 34 34" aria-hidden="true"><rect width="34" height="34" rx="10" fill="{{ $dark ? '#F2B84B' : '#0F4C3A' }}"/><path d="M10 23 L23 10 M14 10 H23 V19" stroke="{{ $dark ? '#0F4C3A' : '#F2B84B' }}" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -122,6 +122,13 @@
     </div>
 </footer>
 <script>
+    // Over the home-page picture the header floats; tell the hero how tall it is (it wraps on phones).
+    (() => {
+        const h = document.querySelector('.site-header.over-hero');
+        if (!h) return;
+        const set = () => document.documentElement.style.setProperty('--header-h', h.offsetHeight + 'px');
+        set(); addEventListener('resize', set);
+    })();
     // Close the account menu when clicking elsewhere or pressing Escape.
     document.addEventListener('click', e => document.querySelectorAll('details.account-menu[open]').forEach(d => { if (!d.contains(e.target)) d.removeAttribute('open'); }));
     document.addEventListener('keydown', e => { if (e.key === 'Escape') document.querySelectorAll('details.account-menu[open]').forEach(d => d.removeAttribute('open')); });
