@@ -12,11 +12,14 @@ use App\Models\TransferRoute;
 use App\Models\VehicleType;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 /**
  * Demo catalogue for testing and demos: transfers, tours and attraction tickets in Malaysia.
  * Safe to run again (updates instead of duplicating). Prices are examples only.
  * Supplier emails go to ADMIN_EMAIL, so you receive the one-click confirm emails yourself.
+ * Images are original illustrations from database/seeders/sample-images; they are only
+ * added where a product or vehicle has no image yet, so your own photos are never replaced.
  *
  * Needs MalaysiaStarterSeeder first (cities, locations, vehicles).
  */
@@ -35,6 +38,8 @@ class SampleCatalogueSeeder extends Seeder
             $this->attractions($suppliers['tickets']);
             $this->extras();
         });
+
+        $this->vehicleImages();
     }
 
     /** Turns every sample product off again (bookings that used them keep working). */
@@ -208,6 +213,8 @@ class SampleCatalogueSeeder extends Seeder
                 'is_active' => true, 'sort' => $i + 1, 'deleted_at' => null,
             ]);
 
+            $this->attachImage($tour, 'tours', $t['slug']);
+
             [$adultSell, $adultCost, $childSell, $childCost] = $t['sicPrices'];
             $tour->sicPrices()->updateOrCreate(['pax_type' => 'adult'], ['selling_price' => $adultSell, 'cost_price' => $adultCost, 'currency' => 'MYR']);
             $tour->sicPrices()->updateOrCreate(['pax_type' => 'child'], ['selling_price' => $childSell, 'cost_price' => $childCost, 'currency' => 'MYR']);
@@ -277,6 +284,8 @@ class SampleCatalogueSeeder extends Seeder
                 'is_refundable' => $a['refundable'], 'cancellation_hours' => $a['refundable'] ? 24 : 0,
                 'delivery_method' => $a['method'], 'is_active' => true, 'sort' => $i + 1, 'deleted_at' => null,
             ]);
+            $this->attachImage($attraction, 'attractions', $a['slug']);
+
             foreach ($a['types'] as $j => [$name, $age, $needsId, $sell, $cost]) {
                 $attraction->ticketTypes()->updateOrCreate(['name' => $name], [
                     'age_label' => $age, 'requires_id' => $needsId, 'selling_price' => $sell, 'cost_price' => $cost,
@@ -284,6 +293,42 @@ class SampleCatalogueSeeder extends Seeder
                 ]);
             }
         }
+    }
+
+    /** Copies a bundled illustration to the uploads disk and returns its path there. */
+    private function publishImage(string $folder, string $file): ?string
+    {
+        $source = database_path("seeders/sample-images/{$folder}/{$file}");
+        if (! is_file($source)) {
+            return null;
+        }
+        $target = "sample/{$folder}/{$file}";
+        $disk = Storage::disk('uploads');
+        if (! $disk->exists($target)) {
+            $disk->put($target, file_get_contents($source), 'public');
+        }
+
+        return $target;
+    }
+
+    /** Gives a tour or attraction its sample picture, unless it already has images. */
+    private function attachImage(Tour|Attraction $product, string $folder, string $slug): void
+    {
+        if (! empty($product->images)) {
+            return;
+        }
+        if ($path = $this->publishImage($folder, $slug.'.jpg')) {
+            $product->forceFill(['images' => [$path]])->save();
+        }
+    }
+
+    private function vehicleImages(): void
+    {
+        VehicleType::query()->get()->each(function (VehicleType $v) {
+            if (blank($v->image) && ($path = $this->publishImage('vehicles', $v->slug.'.png'))) {
+                $v->forceFill(['image' => $path])->save();
+            }
+        });
     }
 
     private function extras(): void

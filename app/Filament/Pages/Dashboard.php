@@ -24,7 +24,7 @@ class Dashboard extends BaseDashboard
                     ->icon('heroicon-o-sparkles')
                     ->requiresConfirmation()
                     ->modalHeading('Load the sample catalogue?')
-                    ->modalDescription('Adds demo transfers (13 routes × 4 vehicles), 6 tours and 5 attractions in Malaysia with example prices, plus 4 add-ons. Running it again updates them instead of adding copies. Supplier emails for test bookings go to the ADMIN_EMAIL address. Your own products are not touched.')
+                    ->modalDescription('Adds demo transfers (13 routes × 4 vehicles), 6 tours and 5 attractions in Malaysia with example prices and pictures, plus 4 add-ons. Pictures are only added where there is no image yet. Running it again updates them instead of adding copies. Supplier emails for test bookings go to the ADMIN_EMAIL address. Your own products are not touched.')
                     ->modalSubmitActionLabel('Load sample data')
                     ->action(function () {
                         app(SampleCatalogueSeeder::class)->setContainer(app())->run();
