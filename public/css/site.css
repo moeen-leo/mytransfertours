@@ -39,8 +39,10 @@ p { margin: 0; }
 .site-nav a:hover { text-decoration: underline; color: inherit; }
 .header-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .currency-form select { min-height: 40px; border-radius: 10px; padding: 0 10px; font: 600 14px var(--font); border: 1px solid rgba(255,255,255,.35); background: transparent; color: inherit; cursor: pointer; }
-.light .currency-form select { border-color: var(--field); }
-.currency-form option { color: var(--ink); }
+.light .currency-form select { border-color: var(--field); background-color: #fff; color: var(--ink); color-scheme: light; }
+/* Solid colours: with a transparent background some browsers (Chrome on Windows) draw the list black. */
+.site-header:not(.light) .currency-form select { background-color: var(--green); color: #fff; color-scheme: dark; }
+.currency-form option { color: var(--ink); background-color: #fff; }
 
 /* Buttons */
 .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; padding: 0 22px; border-radius: 12px; background: var(--green); color: #fff; font: 600 15px var(--font); border: 0; text-decoration: none; cursor: pointer; }
