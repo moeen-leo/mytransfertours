@@ -6,7 +6,7 @@ return [
     | https://<site>/ops-7k2q. Use something hard to guess; it is still
     | password-protected and limited to admin/staff accounts.
     */
-    'path' => trim((string) env('ADMIN_PATH', 'admin'), '/'),
+    'path' => trim((string) (env('ADMIN_PATH') ?: 'admin'), '/') ?: 'admin',
 
     /*
     | First admin account. If no admin exists yet, the post-deploy step
