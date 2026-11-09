@@ -1,4 +1,4 @@
-@extends('layouts.site', ['title' => 'Tours'])
+@extends('layouts.site', ['title' => 'Tours in Malaysia', 'description' => 'Day tours in and around Kuala Lumpur: join a shared tour or book a private car with driver. Hotel pick-up, fixed prices and instant confirmation.'])
 
 @php use App\Support\Money; @endphp
 

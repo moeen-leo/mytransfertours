@@ -1,4 +1,4 @@
-@extends('layouts.site', ['title' => 'Attraction tickets'])
+@extends('layouts.site', ['title' => 'Attraction tickets in Malaysia', 'description' => 'Skip the queue with attraction tickets for Malaysia\'s top sights. Choose your date, pay once and get your tickets by email.'])
 
 @php use App\Support\Money; @endphp
 

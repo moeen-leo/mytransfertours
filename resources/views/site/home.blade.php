@@ -1,4 +1,14 @@
 @extends('layouts.site', ['darkHeader' => true])
+@push('head')
+{{-- Keys are written '@'.'type' so Blade doesn't read them as its own @ commands. --}}
+<script type="application/ld+json">{!! json_encode([
+    '@'.'context' => 'https://schema.org',
+    '@'.'graph' => [
+        ['@'.'type' => 'TravelAgency', '@'.'id' => url('/').'#org', 'name' => 'MyTransferTours', 'url' => url('/'), 'logo' => asset('favicon.svg'), 'image' => asset('og-image.png'), 'areaServed' => 'Malaysia'],
+        ['@'.'type' => 'WebSite', 'name' => 'MyTransferTours', 'url' => url('/'), 'publisher' => ['@'.'id' => url('/').'#org']],
+    ],
+], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG) !!}</script>
+@endpush
 
 @php
     use App\Support\Money;

@@ -49,3 +49,5 @@ php artisan serve
 7. Stripe Checkout + webhook
 8. Emails: customer voucher, supplier one-click confirm, reminders, manual send
 9. Admin bookings: detail, resend, refund, activity log
+10. ~~Admin dashboard: sales, profit (admins only), suppliers awaiting confirmation, unpaid on account, refunds, best sellers~~
+11. ~~SEO basics: page titles and descriptions, canonical links, share previews (`public/og-image.png`), `/sitemap.xml` and `/robots.txt` (dev is always hidden from search engines; only the live site with `APP_ENV=production` is indexed)~~

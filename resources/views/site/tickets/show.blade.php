@@ -1,4 +1,4 @@
-@extends('layouts.site', ['title' => $attraction->title, 'description' => $attraction->summary])
+@extends('layouts.site', ['title' => $attraction->title.' tickets', 'description' => $attraction->summary ?: $attraction->description, 'image' => ($img = collect((array) $attraction->images)->first()) ? route('media', ['path' => $img]) : null])
 
 @php
     use App\Support\Money;

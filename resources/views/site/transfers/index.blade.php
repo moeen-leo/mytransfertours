@@ -1,4 +1,4 @@
-@extends('layouts.site', ['title' => 'Airport & city transfers'])
+@extends('layouts.site', ['title' => 'Airport & city transfers in Malaysia', 'description' => 'Private airport and city transfers in Malaysia with a fixed price per car. KLIA, klia2 and hotels: meet and greet, flight tracking and free waiting time.'])
 
 @php
     use App\Support\Money;

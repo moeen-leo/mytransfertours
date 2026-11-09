@@ -35,6 +35,12 @@ class AppServiceProvider extends ServiceProvider
             'attraction' => \App\Models\Attraction::class,
         ]);
 
+        // Rebuild sitemap.xml as soon as a tour or attraction is added, changed or removed.
+        foreach ([\App\Models\Tour::class, \App\Models\Attraction::class] as $model) {
+            $model::saved(fn () => \Illuminate\Support\Facades\Cache::forget('seo:sitemap'));
+            $model::deleted(fn () => \Illuminate\Support\Facades\Cache::forget('seo:sitemap'));
+        }
+
         // Catch N+1 queries and typos in attribute names while developing.
         Model::shouldBeStrict(! $this->app->isProduction());
 

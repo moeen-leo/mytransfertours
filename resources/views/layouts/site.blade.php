@@ -3,9 +3,35 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{{ isset($title) ? $title.' · ' : '' }}MyTransferTours</title>
-    <meta name="description" content="{{ $description ?? 'Airport transfers, tours and attraction tickets in Malaysia, in one trip and one payment.' }}">
-    @if (! app()->isProduction())<meta name="robots" content="noindex">@endif
+    @php
+        $siteName = 'MyTransferTours';
+        $pageTitle = isset($title) ? $title.' · '.$siteName : 'Airport transfers, tours & attraction tickets in Malaysia · '.$siteName;
+        $pageDescription = \Illuminate\Support\Str::limit(trim(preg_replace('/\s+/', ' ', strip_tags($description ?? 'Book airport transfers, day tours and attraction tickets in Malaysia in one trip and one payment. Fixed prices, instant confirmation emails and local suppliers.'))), 160);
+        // Private or per-visitor pages stay out of search results.
+        $noindex = ($noindex ?? false)
+            || ! app()->isProduction()
+            || request()->routeIs('checkout*', 'trip', 'booking.*', 'manage.*', 'login', 'register', 'account.*', 'verification.*', 'transfers.details')
+            || (request()->routeIs('transfers.search') && request()->query());
+        $ogImage = $image ?? asset('og-image.png');
+    @endphp
+    <title>{{ $pageTitle }}</title>
+    <meta name="description" content="{{ $pageDescription }}">
+    @if ($noindex)
+        <meta name="robots" content="noindex, nofollow">
+    @else
+        <link rel="canonical" href="{{ url()->current() }}">
+    @endif
+    <meta property="og:site_name" content="{{ $siteName }}">
+    <meta property="og:type" content="{{ $ogType ?? 'website' }}">
+    <meta property="og:title" content="{{ $title ?? $pageTitle }}">
+    <meta property="og:description" content="{{ $pageDescription }}">
+    <meta property="og:url" content="{{ url()->current() }}">
+    <meta property="og:image" content="{{ $ogImage }}">
+    <meta property="og:locale" content="en_MY">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="theme-color" content="#0F4C3A">
+    <link rel="icon" href="{{ asset('favicon.svg') }}" type="image/svg+xml">
+    @stack('head')
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">

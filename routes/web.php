@@ -80,6 +80,10 @@ Route::post('/supplier/{item}/{token}/confirm', [\App\Http\Controllers\SupplierB
 Route::post('/supplier/{item}/{token}/decline', [\App\Http\Controllers\SupplierBookingController::class, 'decline'])->whereNumber('item')->middleware('throttle:20,1')->name('supplier.decline');
 
 // ---- Plumbing ----
+// Search engines (cached for an hour; robots.txt blocks everything except on the live site).
+Route::get('/sitemap.xml', [\App\Http\Controllers\SeoController::class, 'sitemap'])->name('sitemap');
+Route::get('/robots.txt', [\App\Http\Controllers\SeoController::class, 'robots'])->name('robots');
+
 // Uploaded images (vehicles, tours, attractions, cities).
 Route::get('/media/{path}', MediaController::class)
     ->where('path', '.*')
