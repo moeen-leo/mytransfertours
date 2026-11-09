@@ -20,7 +20,8 @@ $app = Application::configure(basePath: dirname(__DIR__))
         $middleware->redirectUsersTo(fn () => route('home'));
     })
     ->withExceptions(function (Exceptions $exceptions) {
-        //
+        // Live site only: email the team about unexpected errors (throttled).
+        $exceptions->report(fn (\Throwable $e) => \App\Support\ErrorAlert::report($e));
     })
     ->create();
 

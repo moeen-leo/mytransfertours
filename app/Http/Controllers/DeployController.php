@@ -23,6 +23,11 @@ class DeployController extends Controller
         $output = new BufferedOutput;
         $exit = Artisan::call('app:post-deploy', ['--force' => true], $output);
 
+        // /_deploy/<token>?backup=1 also makes a database backup straight away (to test backups).
+        if ($exit === 0 && request()->boolean('backup')) {
+            Artisan::call('app:backup-database', [], $output);
+        }
+
         return response(
             ($exit === 0 ? "OK\n\n" : "FAILED (see storage/logs)\n\n").$output->fetch(),
             $exit === 0 ? 200 : 500,

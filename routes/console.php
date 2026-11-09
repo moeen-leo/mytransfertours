@@ -7,6 +7,14 @@ use Illuminate\Support\Facades\Schedule;
 | Everything time-based hangs off it, so no SSH is needed after setup.
 */
 
+// Heartbeat, so the launch check can tell the cron job is running.
+// (A file, not the cache: post-deploy clears the cache.)
+Schedule::call(fn () => @file_put_contents(storage_path('app/schedule-heartbeat'), (string) time()))
+    ->everyMinute()->name('heartbeat')->withoutOverlapping();
+
+// Daily database backup at 03:10 Malaysian time, kept for 14 days (see app:backup-database).
+Schedule::command('app:backup-database')->dailyAt('03:10')->timezone('Asia/Kuala_Lumpur')->withoutOverlapping();
+
 // After each Git deploy: run new migrations and refresh caches (only when the build changed).
 Schedule::command('app:post-deploy')->everyMinute()->withoutOverlapping();
 

@@ -8,6 +8,7 @@ Laravel 12 · PHP 8.2+ · MySQL 8 / MariaDB 10.6+
 
 - [`docs/DATABASE.md`](docs/DATABASE.md): database design, tables and the booking automation flow
 - [`docs/DEPLOY-HOSTINGER.md`](docs/DEPLOY-HOSTINGER.md): deploying to Hostinger without SSH
+- [`docs/LAUNCH.md`](docs/LAUNCH.md): step-by-step checklist for going live
 
 ## Branches
 
@@ -52,3 +53,4 @@ php artisan serve
 10. ~~Admin dashboard: sales, profit (admins only), suppliers awaiting confirmation, unpaid on account, refunds, best sellers~~
 11. ~~SEO basics: page titles and descriptions, canonical links, share previews (`public/og-image.png`), `/sitemap.xml` and `/robots.txt` (dev is always hidden from search engines; only the live site with `APP_ENV=production` is indexed)~~
 12. ~~Sample data (dev only): admin dashboard → **Sample data → Load sample catalogue** adds demo transfers, tours, tickets and add-ons (`database/seeders/SampleCatalogueSeeder.php`); **Hide sample catalogue** turns them off again~~
+13. ~~Launch prep: launch check after every deploy, error alert emails, daily database backups, [`docs/LAUNCH.md`](docs/LAUNCH.md)~~

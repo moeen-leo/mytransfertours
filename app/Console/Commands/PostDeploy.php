@@ -81,6 +81,14 @@ class PostDeploy extends Command
         Log::info('Post-deploy finished', ['build' => $build]);
         $this->info('Done.');
 
+        // Report anything still missing for a live site (never fails the deploy).
+        try {
+            Artisan::call('app:launch-check');
+            $this->line(Artisan::output());
+        } catch (\Throwable $e) {
+            report($e);
+        }
+
         return self::SUCCESS;
     }
 
