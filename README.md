@@ -54,3 +54,4 @@ php artisan serve
 11. ~~SEO basics: page titles and descriptions, canonical links, share previews (`public/og-image.png`), `/sitemap.xml` and `/robots.txt` (dev is always hidden from search engines; only the live site with `APP_ENV=production` is indexed)~~
 12. ~~Sample data (dev only): admin dashboard → **Sample data → Load sample catalogue** adds demo transfers, tours, tickets and add-ons (`database/seeders/SampleCatalogueSeeder.php`); **Hide sample catalogue** turns them off again~~
 13. ~~Launch prep: launch check after every deploy, error alert emails, daily database backups, [`docs/LAUNCH.md`](docs/LAUNCH.md)~~
+14. ~~Information pages: About us, Contact, FAQ, Terms, Cancellation and refund policy, Privacy policy (admin → Setup → Website pages; generic template text, have it checked for your business)~~

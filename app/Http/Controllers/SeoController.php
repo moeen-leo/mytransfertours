@@ -20,6 +20,11 @@ class SeoController extends Controller
                 ['loc' => route('tickets.index'), 'priority' => '0.9'],
             ];
 
+            \App\Models\Page::query()->where('is_published', true)->orderBy('sort')->get(['slug', 'updated_at'])
+                ->each(function (\App\Models\Page $p) use (&$urls) {
+                    $urls[] = ['loc' => route('page', $p->slug), 'lastmod' => $p->updated_at?->toAtomString(), 'priority' => '0.4'];
+                });
+
             Tour::query()->where('is_active', true)->orderBy('sort')->get(['slug', 'updated_at'])
                 ->each(function (Tour $t) use (&$urls) {
                     $urls[] = ['loc' => route('tours.show', $t), 'lastmod' => $t->updated_at?->toAtomString(), 'priority' => '0.8'];

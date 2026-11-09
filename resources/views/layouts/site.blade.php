@@ -97,13 +97,23 @@
 
 <footer class="site-footer">
     <div class="wrap">
-        <span class="logo" style="color: #fff; font-size: 18px">mytransfertours</span>
-        <span>Malaysia first. More countries soon.</span>
-        <span>
+        <div style="display: flex; flex-direction: column; gap: 6px">
+            <span class="logo" style="color: #fff; font-size: 18px">mytransfertours</span>
+            <span>Transfers, tours and tickets. Malaysia first, more countries soon.</span>
+        </div>
+        <nav class="footer-links" aria-label="Information">
+            @foreach (\App\Models\Page::footerLinks() as $link)
+                <a href="{{ route('page', $link['slug']) }}">{{ $link['title'] }}</a>
+            @endforeach
+            <a href="{{ route('manage.findForm') }}">Find my booking</a>
             @auth('web')
                 <form method="post" action="{{ route('logout') }}" style="display: inline">@csrf<button class="link-btn" style="color: #C9D3CE">Sign out</button></form>
             @endauth
-        </span>
+        </nav>
+        <div class="footer-bottom">
+            <span>© {{ now()->year }} {{ \App\Models\Setting::get('company_name', 'MyTransferTours') }}</span>
+            <span>Secure payments by Stripe</span>
+        </div>
     </div>
 </footer>
 <script>

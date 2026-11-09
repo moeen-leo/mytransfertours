@@ -79,6 +79,11 @@ Route::get('/supplier/{item}/{token}', [\App\Http\Controllers\SupplierBookingCon
 Route::post('/supplier/{item}/{token}/confirm', [\App\Http\Controllers\SupplierBookingController::class, 'confirm'])->whereNumber('item')->middleware('throttle:20,1')->name('supplier.confirm');
 Route::post('/supplier/{item}/{token}/decline', [\App\Http\Controllers\SupplierBookingController::class, 'decline'])->whereNumber('item')->middleware('throttle:20,1')->name('supplier.decline');
 
+// Information pages (About us, Terms, Privacy...), edited under Setup > Website pages.
+Route::get('/{slug}', \App\Http\Controllers\Site\PageController::class)
+    ->whereIn('slug', \App\Models\Page::SLUGS)
+    ->name('page');
+
 // ---- Plumbing ----
 // Search engines (cached for an hour; robots.txt blocks everything except on the live site).
 Route::get('/sitemap.xml', [\App\Http\Controllers\SeoController::class, 'sitemap'])->name('sitemap');

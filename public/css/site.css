@@ -156,6 +156,24 @@ table.list td { padding: 14px 8px; border-bottom: 1px solid var(--line); vertica
 .account-dropdown a, .account-dropdown button { display: block; width: 100%; text-align: left; padding: 10px 12px; border-radius: 8px; background: none; border: 0; color: var(--ink); font: 500 14px var(--font); text-decoration: none; cursor: pointer; }
 .account-dropdown a:hover, .account-dropdown button:hover { background: rgba(0,0,0,.05); color: var(--ink); }
 .account-dropdown form { margin: 0; }
+/* Information pages (About, Terms, Privacy...) */
+.prose { margin-top: 28px; line-height: 1.7; font-size: 16px; color: var(--ink); }
+.prose h2 { font-size: 22px; margin: 36px 0 10px; }
+.prose h3 { font-size: 18px; margin: 28px 0 8px; }
+.prose p { margin: 0 0 14px; }
+.prose ul, .prose ol { margin: 0 0 16px; padding-left: 22px; }
+.prose li { margin-bottom: 6px; }
+.prose a { color: var(--green); text-decoration: underline; text-underline-offset: 2px; }
+.prose strong { font-weight: 600; }
+.contact-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 14px; margin-top: 24px; }
+.contact-card { display: flex; flex-direction: column; gap: 4px; text-decoration: none; color: var(--ink); }
+.contact-card:hover { border-color: var(--green); color: var(--ink); }
+.contact-card b { font-size: 16px; overflow-wrap: anywhere; }
+.footer-links { display: flex; flex-wrap: wrap; gap: 8px 20px; }
+.footer-links a { text-decoration: none; }
+.footer-links a:hover { color: #fff; text-decoration: underline; }
+.footer-bottom { width: 100%; border-top: 1px solid rgba(255,255,255,.12); padding-top: 16px; display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; font-size: 13px; color: #8FA39A; }
+
 @media (max-width: 640px) { .account-menu .account-name { display: none; } }
 
 @media (max-width: 640px) {

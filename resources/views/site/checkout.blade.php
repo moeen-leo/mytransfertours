@@ -85,6 +85,7 @@
                     <p class="tiny muted">On account, this is invoiced in your account currency: {{ $creditCurrency->format($creditTotal) }}.</p>
                 @endif
                 <button class="btn coral block big" @disabled(! $cardEnabled && ! $creditFits)>Confirm booking</button>
+                <p class="tiny muted" style="text-align: center; margin: 10px 0 0">By booking you agree to our <a href="{{ route('page', 'terms') }}" target="_blank">terms</a>, <a href="{{ route('page', 'cancellation-policy') }}" target="_blank">cancellation policy</a> and <a href="{{ route('page', 'privacy-policy') }}" target="_blank">privacy policy</a>.</p>
                 <a href="{{ route('trip') }}" class="small" style="text-align: center">← Back to my trip</a>
             </div>
         </aside>
