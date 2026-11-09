@@ -6,6 +6,7 @@
         @csrf
         <h1 style="font-size: 30px">Sign in</h1>
         @if ($errors->any())<div class="alert error" role="alert">{{ $errors->first() }}</div>@endif
+        @include('site.auth._google')
         <label class="field"><span class="label">Email</span><input type="email" name="email" value="{{ old('email') }}" autocomplete="email" required autofocus></label>
         <label class="field"><span class="label">Password</span><input type="password" name="password" autocomplete="current-password" required></label>
         <label class="check"><input type="checkbox" name="remember" value="1" checked> Keep me signed in</label>

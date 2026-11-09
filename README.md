@@ -45,7 +45,7 @@ php artisan serve
 3. ~~Admin panel (Filament): locations, vehicles, suppliers, routes and prices, tours, attractions, add-ons, pricing rules, promo codes, team~~
 4. Pricing service and cart
 5. Customer pages: home, transfer, tour and ticket flows, checkout
-6. Sign-up with email and Google
+6. ~~Sign-up with email and Google~~ (Google setup: see [`docs/DEPLOY-HOSTINGER.md`](docs/DEPLOY-HOSTINGER.md#google-sign-in))
 7. Stripe Checkout + webhook
 8. Emails: customer voucher, supplier one-click confirm, reminders, manual send
 9. Admin bookings: detail, resend, refund, activity log

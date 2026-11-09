@@ -58,6 +58,26 @@ Replace `u123456789` with your Hostinger username and adjust the path to the dev
 ### 6. Check
 Wait 1–2 minutes, then open **https://dev.mytransfertours.com**. You should see the green "Coming soon" page with `staging · Laravel 12.x` at the bottom.
 
+## Google sign-in
+
+The "Continue with Google" button appears on the sign-in and sign-up pages only once these are set in the site's `.env`.
+
+1. Go to **console.cloud.google.com**, create a project (e.g. *MyTransferTours*).
+2. **APIs & Services → OAuth consent screen**: user type **External**, app name *MyTransferTours*, support email, logo optional. Scopes: just the defaults (`email`, `profile`, `openid`). Click **Publish app** so anyone can sign in (no Google review is needed for these basic scopes).
+3. **APIs & Services → Credentials → Create credentials → OAuth client ID** → *Web application*.
+   - **Authorised JavaScript origins:** `https://dev.mytransfertours.com` (and `https://mytransfertours.com` for live)
+   - **Authorised redirect URIs:** `https://dev.mytransfertours.com/auth/google/callback` (and `https://mytransfertours.com/auth/google/callback`)
+4. Copy the **Client ID** and **Client secret** into `.env`:
+
+```
+GOOGLE_CLIENT_ID=xxxxxxxx.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=GOCSPX-xxxxxxxx
+```
+
+`GOOGLE_REDIRECT_URI` can stay as in `.env.example` (or be left out: it defaults to `APP_URL/auth/google/callback`). Then open the post-deploy link `/_deploy/<token>` so the cached config picks up the new values.
+
+How accounts are matched: a Google sign-in with an email that already has an account signs into that account (Google has confirmed the email, so it also counts as email verification and brings in earlier guest bookings). A new email creates a customer account with no password.
+
 ## If something goes wrong
 
 | Symptom | Cause / fix |
@@ -65,6 +85,8 @@ Wait 1–2 minutes, then open **https://dev.mytransfertours.com**. You should se
 | "500 Server Error" | The `.env` is missing or in the wrong folder, or the cron hasn't run yet (the key is generated on the first run). |
 | Folder listing or 403 | Git is still on `develop` instead of `build-dev`, so `vendor/` is missing. |
 | Database error | DB name, user or password in `.env` don't match hPanel (remember the `u123456789_` prefix). |
+| Google: "redirect_uri_mismatch" | The redirect URI in Google Cloud must match exactly, including `https://` and no trailing slash. |
+| Google button missing | `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` empty, or config still cached: open `/_deploy/<token>`. |
 | Logs | `public_html/dev/storage/logs/` in File Manager. Send me the latest file. |
 
 ## Live site (at launch)

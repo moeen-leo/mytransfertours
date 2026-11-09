@@ -7,6 +7,7 @@
         <h1 style="font-size: 30px">Create your account</h1>
         <p class="muted small">See all your bookings and invoices in one place.</p>
         @if ($errors->any())<div class="alert error" role="alert">@foreach ($errors->all() as $e)<div>{{ $e }}</div>@endforeach</div>@endif
+        @include('site.auth._google', ['or' => 'sign up with email'])
         <label class="field"><span class="label">Full name</span><input name="name" value="{{ old('name') }}" autocomplete="name" required autofocus></label>
         <label class="field"><span class="label">Email</span><input type="email" name="email" value="{{ old('email') }}" autocomplete="email" required></label>
         <label class="field"><span class="label">Mobile / WhatsApp (optional)</span><input type="tel" name="phone" value="{{ old('phone') }}" autocomplete="tel"></label>
