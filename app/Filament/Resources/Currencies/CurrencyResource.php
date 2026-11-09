@@ -54,7 +54,7 @@ class CurrencyResource extends Resource
                     TextInput::make('name')->required()->placeholder('US dollar'),
                     TextInput::make('symbol')->required()->maxLength(8)->placeholder('$'),
                     Toggle::make('auto_update')
-                        ->label('Update the rate automatically every day (European Central Bank)')
+                        ->label('Update the rate automatically every day')
                         ->default(true)
                         ->live()
                         ->hidden(fn (?Currency $record) => (bool) $record?->is_base)
@@ -104,8 +104,8 @@ class CurrencyResource extends Resource
                 TextColumn::make('example')->label('RM 100 shows as')
                     ->state(fn (Currency $r) => $r->format($r->fromBase(100))),
                 TextColumn::make('rate_source')->label('Source')->badge()
-                    ->formatStateUsing(fn (?string $state) => match ($state) { 'ecb' => 'Automatic (ECB)', 'manual' => 'Manual', 'base' => 'Base', default => 'Not set yet' })
-                    ->color(fn (?string $state) => match ($state) { 'ecb' => 'success', 'manual' => 'warning', default => 'gray' })
+                    ->formatStateUsing(fn (?string $state) => match ($state) { 'ecb' => 'Automatic (ECB)', 'er-api', 'currency-api' => 'Automatic (daily)', 'manual' => 'Manual', 'base' => 'Base', default => 'Not set yet' })
+                    ->color(fn (?string $state) => match ($state) { 'ecb', 'er-api', 'currency-api' => 'success', 'manual' => 'warning', default => 'gray' })
                     ->placeholder('Not set yet'),
                 TextColumn::make('rate_updated_at')->label('Rate last changed')->since()->placeholder('Never: please check'),
                 ToggleColumn::make('is_active')->label('Active')

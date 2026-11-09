@@ -112,7 +112,12 @@
         </nav>
         <div class="footer-bottom">
             <span>© {{ now()->year }} {{ \App\Models\Setting::get('company_name', 'MyTransferTours') }}</span>
-            <span>Secure payments by Stripe</span>
+            <span>
+                Secure payments by Stripe
+                @if (collect($siteCurrencies)->contains(fn ($c) => in_array($c->rate_source, ['er-api', 'currency-api'], true)))
+                    · <a href="https://www.exchangerate-api.com" target="_blank" rel="noopener">Rates By Exchange Rate API</a>
+                @endif
+            </span>
         </div>
     </div>
 </footer>
