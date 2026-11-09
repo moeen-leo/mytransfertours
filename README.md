@@ -51,3 +51,4 @@ php artisan serve
 9. Admin bookings: detail, resend, refund, activity log
 10. ~~Admin dashboard: sales, profit (admins only), suppliers awaiting confirmation, unpaid on account, refunds, best sellers~~
 11. ~~SEO basics: page titles and descriptions, canonical links, share previews (`public/og-image.png`), `/sitemap.xml` and `/robots.txt` (dev is always hidden from search engines; only the live site with `APP_ENV=production` is indexed)~~
+12. ~~Sample data (dev only): admin dashboard → **Sample data → Load sample catalogue** adds demo transfers, tours, tickets and add-ons (`database/seeders/SampleCatalogueSeeder.php`); **Hide sample catalogue** turns them off again~~
