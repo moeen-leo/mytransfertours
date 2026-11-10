@@ -60,9 +60,25 @@ class StripeService
             ],
         ])->values()->all();
 
+        // A promo code becomes a one-off Stripe coupon, so the Stripe page shows each item at its
+        // normal price, the discount on its own line, and charges exactly the booking total.
+        $discounts = [];
+        if ((float) $booking->discount_total > 0) {
+            $coupon = $this->client()->coupons->create([
+                'amount_off' => self::toMinor((float) $booking->discount_total, $booking->currency),
+                'currency' => $currency,
+                'duration' => 'once',
+                'max_redemptions' => 1,
+                'name' => 'Promo '.($booking->coupon_code ?: 'discount'),
+                'metadata' => ['booking_reference' => $booking->reference],
+            ], ['idempotency_key' => 'coupon-'.$booking->id.'-'.self::toMinor((float) $booking->discount_total, $booking->currency)]);
+            $discounts = [['coupon' => $coupon->id]];
+        }
+
         $session = $this->client()->checkout->sessions->create([
             'mode' => 'payment',
             'line_items' => $lineItems,
+            ...($discounts ? ['discounts' => $discounts] : []),
             'customer_email' => $booking->email,
             'client_reference_id' => $booking->reference,
             'metadata' => ['booking_id' => (string) $booking->id, 'booking_reference' => $booking->reference],
@@ -129,6 +145,7 @@ class StripeService
             ])->save();
 
             $booking->assignInvoiceNumber();
+            app(CouponService::class)->recordUse($booking);
             $booking->log('paid', 'Paid by card: '.strtoupper((string) $session->currency).' '.number_format(self::fromMinor((int) $session->amount_total, (string) $session->currency), 2), ['payment_intent' => $intentId], null, null);
 
             return true;

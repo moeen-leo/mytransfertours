@@ -88,6 +88,7 @@ class TransferQuoter
             'sign_name' => trim((string) ($p['sign_name'] ?? '')) ?: null,
             'driver_notes' => trim((string) ($p['driver_notes'] ?? '')) ?: null,
             'extras' => collect($extras['lines'])->mapWithKeys(fn ($l) => [$l['extra']->id => $l['qty']])->all(),
+            'is_return_leg' => (bool) ($p['is_return_leg'] ?? false),
         ];
 
         $paxTotal = $adults + $children + $infants;
@@ -97,7 +98,7 @@ class TransferQuoter
             'type' => ProductType::Transfer,
             'bookable' => $route,
             'cancellation_hours' => (int) $route->cancellation_hours,
-            'summary' => $price->vehicleType->name.' · '.$paxTotal.' '.($paxTotal === 1 ? 'passenger' : 'passengers').' · '.$bags.' '.($bags === 1 ? 'bag' : 'bags').($payload['flight_number'] ? ' · flight '.$payload['flight_number'] : ''),
+            'summary' => ($payload['is_return_leg'] ? 'Return · ' : '').$price->vehicleType->name.' · '.$paxTotal.' '.($paxTotal === 1 ? 'passenger' : 'passengers').' · '.$bags.' '.($bags === 1 ? 'bag' : 'bags').($payload['flight_number'] ? ' · flight '.$payload['flight_number'] : ''),
             // Transfer-specific:
             'route' => $route,
             'from' => $from,

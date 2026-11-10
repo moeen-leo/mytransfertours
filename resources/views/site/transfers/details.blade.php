@@ -49,6 +49,47 @@
                 </label>
             </div>
 
+            @if ($returnSell !== null)
+                @php $wantReturn = (bool) old('return', request('return')); @endphp
+                <div class="card pad stack">
+                    <label class="check">
+                        <input type="checkbox" name="return" value="1" id="add-return" @checked($wantReturn)>
+                        <span class="stack" style="gap: 2px">
+                            <b>Add a return transfer · {{ Money::format($returnSell) }}</b>
+                            <span class="small muted">Same {{ $v->name }}, {{ $to->short_name ?: $to->name }} → {{ $from->short_name ?: $from->name }}. Price shown for your first date; the final price for your return date is shown on My trip.</span>
+                        </span>
+                    </label>
+                    <div id="return-fields" class="stack" @unless ($wantReturn) hidden @endunless>
+                        <div class="grid-2">
+                            <label class="field @error('return_date') has-error @enderror"><span class="label">Return date</span>
+                                <input type="date" name="return_date" value="{{ old('return_date') }}" min="{{ $p['date'] }}" data-return-required>
+                            </label>
+                            <label class="field @error('return_time') has-error @enderror"><span class="label">Return pick-up time</span>
+                                <input type="time" name="return_time" value="{{ old('return_time') }}" data-return-required>
+                            </label>
+                        </div>
+                        @if ($to->requires_flight_number || $from->requires_flight_number)
+                            <label class="field @error('return_flight_number') has-error @enderror"><span class="label">{{ $to->requires_flight_number ? 'Arriving flight number' : 'Departing flight number (optional)' }}</span>
+                                <input name="return_flight_number" value="{{ old('return_flight_number') }}" placeholder="e.g. MH 124" autocomplete="off" @if ($to->requires_flight_number) data-return-required @endif>
+                            </label>
+                            @unless ($to->requires_flight_number)
+                                <p class="tiny muted">Pick a time that gets you to the airport at least 3 hours before an international flight.</p>
+                            @endunless
+                        @endif
+                        @if ($to->requires_address)
+                            <label class="field"><span class="label">Return pick-up hotel or address ({{ $to->short_name ?: $to->name }})</span>
+                                <input name="return_pickup_address" value="{{ old('return_pickup_address') }}" placeholder="Leave empty if it's the same as your drop-off above">
+                            </label>
+                        @endif
+                        @if ($from->requires_address)
+                            <label class="field"><span class="label">Return drop-off hotel or address ({{ $from->short_name ?: $from->name }})</span>
+                                <input name="return_dropoff_address" value="{{ old('return_dropoff_address') }}" placeholder="Leave empty if it's the same as your pick-up above">
+                            </label>
+                        @endif
+                    </div>
+                </div>
+            @endif
+
             @if ($extras->isNotEmpty())
                 <div class="card pad stack">
                     <h2 style="font-size: 20px">Add-ons</h2>
@@ -78,4 +119,19 @@
         </aside>
     </form>
 </div>
+
+@if ($returnSell !== null)
+<script>
+(function () {
+    var box = document.getElementById('add-return');
+    var fields = document.getElementById('return-fields');
+    function toggle() {
+        fields.hidden = ! box.checked;
+        fields.querySelectorAll('[data-return-required]').forEach(function (el) { el.required = box.checked; });
+    }
+    box.addEventListener('change', toggle);
+    toggle();
+})();
+</script>
+@endif
 @endsection

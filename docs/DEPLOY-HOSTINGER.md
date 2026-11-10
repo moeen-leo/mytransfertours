@@ -9,7 +9,7 @@ I push to develop ──► GitHub builds it (installs vendor/) ──► build-
                        └─ sees a new build ─► generates APP_KEY (first time) ─► migrates ─► seeds Malaysia data (first time) ─► caches
 ```
 
-At launch the same happens for `main` → `build-main` → live folder.
+At launch the same happens for `main` → `build-main` → live folder. Hostinger allows one Git connection, so at launch it is switched from `build-dev` to `build-main` (see [LAUNCH.md](LAUNCH.md), step 7).
 
 ## One-time setup for dev
 

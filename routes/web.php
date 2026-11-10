@@ -32,6 +32,8 @@ Route::post('/transfers/book', [TransferController::class, 'add'])->name('transf
 
 Route::get('/trip', [TripController::class, 'show'])->name('trip');
 Route::delete('/trip/items/{item}', [TripController::class, 'remove'])->whereNumber('item')->name('trip.remove');
+Route::post('/trip/coupon', [TripController::class, 'applyCoupon'])->middleware('throttle:20,1')->name('trip.coupon');
+Route::delete('/trip/coupon', [TripController::class, 'removeCoupon'])->name('trip.coupon.remove');
 
 Route::get('/checkout', [CheckoutController::class, 'show'])->name('checkout');
 Route::post('/checkout', [CheckoutController::class, 'store'])->middleware('throttle:10,1')->name('checkout.store');

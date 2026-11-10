@@ -8,6 +8,7 @@ use App\Models\Booking;
 use App\Models\Currency;
 use App\Services\BookingService;
 use App\Services\CartService;
+use App\Services\CouponService;
 use App\Services\StripeService;
 use App\Support\Money;
 use Illuminate\Http\RedirectResponse;
@@ -19,7 +20,7 @@ use Illuminate\View\View;
 
 class CheckoutController extends Controller
 {
-    public function __construct(private CartService $cart, private BookingService $bookings, private StripeService $stripe) {}
+    public function __construct(private CartService $cart, private BookingService $bookings, private StripeService $stripe, private CouponService $coupons) {}
 
     public static function cardPaymentsEnabled(): bool
     {
@@ -39,14 +40,24 @@ class CheckoutController extends Controller
 
         $user = $request->user();
         $creditCurrency = $user?->credit_enabled ? (Currency::forCode($user->preferred_currency) ?? Money::current()) : null;
+        $promo = $this->coupons->forCart($this->cart->current(), $total, $user);
+        $creditTotal = null;
+        if ($creditCurrency) {
+            $creditTotal = collect($lines)->sum(fn ($l) => $creditCurrency->fromBase($l['quote']['sell']));
+            if ($promo['discount'] > 0) {
+                $creditTotal -= $this->coupons->discountIn($promo['coupon'], $creditTotal, $creditCurrency);
+            }
+        }
 
         return view('site.checkout', [
             'lines' => $lines,
-            'total' => $total,
+            'subtotal' => $total,
+            'promo' => $promo,
+            'total' => round(max(0, $total - $promo['discount']), 2),
             'user' => $user,
             'cardEnabled' => self::cardPaymentsEnabled(),
             'creditCurrency' => $creditCurrency,
-            'creditTotal' => $creditCurrency ? collect($lines)->sum(fn ($l) => $creditCurrency->fromBase($l['quote']['sell'])) : null,
+            'creditTotal' => $creditTotal,
             'creditAvailable' => $user?->credit_enabled ? $user->creditAvailable() : null,
         ]);
     }

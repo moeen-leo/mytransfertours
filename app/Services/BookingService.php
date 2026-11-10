@@ -29,6 +29,7 @@ class BookingService
         private TicketQuoter $tickets,
         private CartService $cart,
         private BookingMailer $mailer,
+        private CouponService $coupons,
     ) {}
 
     /**
@@ -76,8 +77,25 @@ class BookingService
 
         $rate = $currency->effectiveRate();
         $itemTotals = array_map(fn ($l) => $currency->fromBase($l['quote']['sell']), $lines);
-        $total = round(array_sum($itemTotals), 2);
+        $subtotal = round(array_sum($itemTotals), 2);
         $costTotal = round(array_sum(array_map(fn ($l) => $l['quote']['cost'], $lines)), 2);
+
+        // Promo code: checked again here with the customer's email (uses-per-customer limit).
+        $coupon = $cart->coupon_id ? $cart->coupon : null;
+        $discount = 0.0;
+        if ($coupon) {
+            $baseTotal = round(array_sum(array_map(fn ($l) => $l['quote']['sell'], $lines)), 2);
+            if ($problem = $this->coupons->problem($coupon, $baseTotal, $lead['email'], $user)) {
+                throw ValidationException::withMessages(['coupon' => 'Promo code '.$coupon->code.': '.$problem.' Remove it on My trip to continue.']);
+            }
+            $discount = $this->coupons->discountIn($coupon, $subtotal, $currency);
+        }
+        $total = round($subtotal - $discount, 2);
+
+        // Stripe can't take a card payment below about RM 2 (or the equivalent).
+        if ($method === PaymentMethod::Card && $discount > 0 && $total < 2) {
+            throw ValidationException::withMessages(['coupon' => 'With this promo code the total is too small to pay by card. Please contact us to complete the booking.']);
+        }
 
         if ($method === PaymentMethod::Credit && ! $user->canBookOnCredit($total)) {
             $available = $user->creditAvailable();
@@ -85,7 +103,7 @@ class BookingService
                 .$currency->format((float) $available).'). Please pay by card or contact us to raise your limit.']);
         }
 
-        $booking = DB::transaction(function () use ($lines, $itemTotals, $lead, $user, $method, $currency, $rate, $total, $costTotal, $cart) {
+        $booking = DB::transaction(function () use ($lines, $itemTotals, $lead, $user, $method, $currency, $rate, $subtotal, $discount, $total, $costTotal, $coupon, $cart) {
             $booking = new Booking;
             $booking->forceFill([
                 'user_id' => $user?->id,
@@ -97,9 +115,11 @@ class BookingService
                 'customer_notes' => $lead['notes'] ?? null,
                 'currency' => $currency->code,
                 'exchange_rate' => $rate,
-                'subtotal' => $total,
-                'discount_total' => 0,
+                'subtotal' => $subtotal,
+                'discount_total' => $discount,
                 'total' => $total,
+                'coupon_id' => $discount > 0 ? $coupon?->id : null,
+                'coupon_code' => $discount > 0 ? $coupon?->code : null,
                 'cost_total' => $costTotal,
                 'payment_method' => $method,
                 'payment_status' => PaymentStatus::Unpaid,
@@ -153,6 +173,7 @@ class BookingService
                         'bags' => $p['bags'],
                         'sign_name' => $p['sign_name'] ?: strtoupper($lead['first_name'].' '.$lead['last_name']),
                         'driver_notes' => $p['driver_notes'],
+                        'is_return_leg' => (bool) ($p['is_return_leg'] ?? false),
                     ]);
                 }
 
@@ -198,6 +219,7 @@ class BookingService
 
             if ($method === PaymentMethod::Credit) {
                 $booking->assignInvoiceNumber();
+                $this->coupons->recordUse($booking);
                 $this->cart->clear($cart);
             }
 

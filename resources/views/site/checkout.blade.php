@@ -80,6 +80,11 @@
                 @foreach ($lines as $line)
                     <div class="sum-row"><span>{{ $line['quote']['title'] }}<br><span class="tiny muted">{{ $line['quote']['date']->format('D j M') }}{{ $line['quote']['time'] ? ' · '.$line['quote']['time'] : '' }} · {{ $line['quote']['summary'] }}</span></span><span>{{ Money::format($line['quote']['sell']) }}</span></div>
                 @endforeach
+                @if ($promo['discount'] > 0)
+                    <div class="sum-row" style="color: var(--green, #0F4C3A)"><span>Promo {{ $promo['coupon']->code }}</span><span>− {{ Money::format($promo['discount']) }}</span></div>
+                @elseif ($promo['coupon'] && $promo['error'])
+                    <p class="tiny error">Promo {{ $promo['coupon']->code }}: {{ $promo['error'] }}</p>
+                @endif
                 <div class="total-box"><b>Total</b><span class="price">{{ Money::format($total) }}</span></div>
                 @if ($hasCredit && $creditCurrency->code !== $siteCurrency->code)
                     <p class="tiny muted">On account, this is invoiced in your account currency: {{ $creditCurrency->format($creditTotal) }}.</p>

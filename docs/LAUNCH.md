@@ -1,6 +1,8 @@
 # Launching the live site
 
-The live site is a second copy of the app with its own folder, database and `.env`, deployed from `main` (GitHub builds `build-main`). Dev keeps running from `develop` exactly as now.
+The live site is a second copy of the app with its own folder, database and `.env`, deployed from `main` (GitHub builds `build-main`).
+
+> **Hostinger allows only one Git connection.** At launch that connection moves from `build-dev` (dev folder) to `build-main` (live folder). The dev site keeps running but stops updating; see *After launch* for how to keep testing.
 
 Work through the steps in order. Steps 1–6 can be done days before launch; the site only goes public at step 8.
 
@@ -16,10 +18,7 @@ Work through the steps in order. Steps 1–6 can be done days before launch; the
 ## 2. Hostinger: live folder and database
 
 1. **hPanel → Databases → MySQL Databases**: create `mtt_live` with its own user and a strong password.
-2. **hPanel → Advanced → Git**: add a second connection for the main domain:
-   - Repository: `https://github.com/moeen-leo/mytransfertours.git`
-   - Branch: **`build-main`**
-   - Folder: the main domain's folder, e.g. `public_html` (or a subfolder such as `public_html/live` with the domain pointed at it).
+2. Decide the live folder: the main domain's folder, e.g. `public_html` (or a subfolder such as `public_html/live` with the domain pointed at it). Leave the dev folder where it is. The Git connection is changed in step 7, not now.
 3. Make sure **PHP 8.2+** is selected for the main domain, with the same extensions as dev.
 
 ## 3. The live `.env`
@@ -70,8 +69,11 @@ This runs deploy steps, emails, supplier reminders, exchange rates and the **dai
 
 ## 7. First live deploy
 
-1. On GitHub, merge `develop` into `main` (Pull request → Merge). About 2 minutes later `build-main` exists.
-2. In hPanel → Git, click **Deploy** on the live connection.
+1. On GitHub, merge `develop` into `main` (Pull request → Merge). About 2 minutes later `build-main` exists (**Actions** shows a green tick).
+2. **hPanel → Advanced → Git**: edit the existing connection (you can only have one):
+   - Branch: `build-dev` → **`build-main`** (never plain `main`: it has no `vendor/` folder and the site would show a 403).
+   - Folder: the dev folder → the **live folder** from step 2.
+   - Click **Deploy**.
 3. Open `https://mytransfertours.com/_deploy/<live DEPLOY_TOKEN>`. You should see `OK`, the **temporary admin password** (shown once: save it) and the **Launch check** list.
 4. Fix everything marked **✗**, then open the link again until it says *All essential checks passed*.
 5. Sign in at `https://mytransfertours.com/<ADMIN_PATH>`, change the password, and fill in **Setup → Company & invoices**, currencies, suppliers and the real catalogue.
@@ -85,6 +87,7 @@ This runs deploy steps, emails, supplier reminders, exchange rates and the **dai
 
 ## After launch
 
-- New work still goes to `develop` and is tested on dev. To release it, merge `develop` into `main`; the live site updates by itself (then open the live `/_deploy/<token>` to apply it straight away).
+- The one Git connection now serves the live site, so dev no longer updates by itself. To test new work on dev, either switch the connection back to `build-dev` and the dev folder for the test (and back to `build-main` and the live folder afterwards), or ask me to add an FTP upload of `build-dev` to the dev folder so both sites update on their own.
+- New work still goes to `develop`. To release it, merge `develop` into `main`; the live site updates by itself (then open the live `/_deploy/<token>` to apply it straight away).
 - Unexpected errors on the live site are emailed to the company email (or the first admin), at most once per 30 minutes per error.
 - Logs: `<live folder>/storage/logs/` in File Manager.

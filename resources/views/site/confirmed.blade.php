@@ -29,6 +29,9 @@
             @endforeach
         </div>
 
+        @if ((float) $booking->discount_total > 0)
+            <div class="sum-row"><span>Promo {{ $booking->coupon_code }}</span><span>− {{ Money::formatIn((float) $booking->discount_total, $booking->currency) }}</span></div>
+        @endif
         <div class="total-box"><b>Total</b><span class="price">{{ Money::formatIn((float) $booking->total, $booking->currency) }}</span></div>
 
         @if ($booking->payment_method === \App\Enums\PaymentMethod::Credit)

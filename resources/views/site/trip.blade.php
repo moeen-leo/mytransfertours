@@ -62,7 +62,27 @@
                 <div class="card summary">
                     <span class="label">Summary</span>
                     <div class="sum-row"><span>{{ count($lines) }} {{ \Illuminate\Support\Str::plural('item', count($lines)) }}</span><span>{{ Money::format($total) }}</span></div>
-                    <div class="total-box"><b>Total</b><span class="price">{{ Money::format($total) }}</span></div>
+                    @if ($promo['coupon'] && $promo['discount'] > 0)
+                        <div class="sum-row" style="color: var(--green, #0F4C3A)"><span>Promo {{ $promo['coupon']->code }}</span><span>− {{ Money::format($promo['discount']) }}</span></div>
+                    @endif
+                    <div class="total-box"><b>Total</b><span class="price">{{ Money::format(max(0, $total - $promo['discount'])) }}</span></div>
+
+                    @if ($promo['coupon'])
+                        <div class="row between small">
+                            <span>Code <b>{{ $promo['coupon']->code }}</b>@if ($promo['error'])<br><span class="error">{{ $promo['error'] }}</span>@endif</span>
+                            <form method="post" action="{{ route('trip.coupon.remove') }}">@csrf @method('DELETE')<button class="link-btn small">Remove</button></form>
+                        </div>
+                    @else
+                        <form method="post" action="{{ route('trip.coupon') }}" class="stack" style="gap: 6px">
+                            @csrf
+                            <label class="field @error('code') has-error @enderror"><span class="label">Promo code</span>
+                                <span class="row" style="gap: 8px">
+                                    <input name="code" value="{{ old('code') }}" placeholder="e.g. WELCOME10" autocomplete="off" maxlength="40" style="text-transform: uppercase; flex: 1; min-width: 0">
+                                    <button class="btn ghost" type="submit">Apply</button>
+                                </span>
+                            </label>
+                        </form>
+                    @endif
                     <p class="tiny muted">Paid once, in {{ $siteCurrency->code }}. Change currency at the top of the page.</p>
                     <a href="{{ route('checkout') }}" class="btn coral block">Checkout</a>
                 </div>

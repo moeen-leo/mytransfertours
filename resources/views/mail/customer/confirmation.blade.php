@@ -7,6 +7,10 @@ Your booking **{{ $booking->reference }}** is confirmed. We've passed the detail
 @include('mail.partials.item', ['item' => $item])
 
 @endforeach
+@if ((float) $booking->discount_total > 0)
+Promo {{ $booking->coupon_code }}: − {{ \App\Support\Money::formatIn((float) $booking->discount_total, $booking->currency) }}
+
+@endif
 **Total: {{ \App\Support\Money::formatIn((float) $booking->total, $booking->currency) }}**
 
 @if ($booking->payment_method === \App\Enums\PaymentMethod::Credit)
