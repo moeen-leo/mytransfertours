@@ -32,7 +32,7 @@
             @endif
 
             @if ($tour->summary)<p style="font-size: 18px">{{ $tour->summary }}</p>@endif
-            @if ($tour->description)<div class="card pad">{!! \Illuminate\Support\Str::markdown($tour->description, ['html_input' => 'strip', 'allow_unsafe_links' => false]) !!}</div>@endif
+            @if ($tour->description)<div class="card pad">{!! \Illuminate\Support\Str::markdown($tour->description, ['html_input' => 'strip', 'allow_unsafe_links' => false, 'renderer' => ['soft_break' => "<br>\n"]]) !!}</div>@endif
 
             @if (! empty($tour->itinerary))
                 <div class="card pad stack">

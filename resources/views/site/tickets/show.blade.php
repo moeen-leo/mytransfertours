@@ -19,7 +19,7 @@
             </div>
             @if (count($images))<div class="ph" style="height: 360px; padding: 0"><img src="{{ route('media', ['path' => $images[0]]) }}" alt="{{ $attraction->title }}"></div>@endif
             @if ($attraction->summary)<p style="font-size: 18px">{{ $attraction->summary }}</p>@endif
-            @if ($attraction->description)<div class="card pad">{!! \Illuminate\Support\Str::markdown($attraction->description, ['html_input' => 'strip', 'allow_unsafe_links' => false]) !!}</div>@endif
+            @if ($attraction->description)<div class="card pad">{!! \Illuminate\Support\Str::markdown($attraction->description, ['html_input' => 'strip', 'allow_unsafe_links' => false, 'renderer' => ['soft_break' => "<br>\n"]]) !!}</div>@endif
             @if (! empty($attraction->good_to_know))
                 <div class="card pad"><b>Good to know</b><ul class="small muted" style="margin: 8px 0 0; padding-left: 18px">@foreach ($attraction->good_to_know as $x)<li>{{ $x }}</li>@endforeach</ul></div>
             @endif

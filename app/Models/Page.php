@@ -68,7 +68,7 @@ class Page extends Model
     {
         $markdown = strtr($this->body, static::placeholders());
 
-        return new HtmlString(Str::markdown($markdown, ['html_input' => 'strip', 'allow_unsafe_links' => false]));
+        return new HtmlString(Str::markdown($markdown, ['html_input' => 'strip', 'allow_unsafe_links' => false, 'renderer' => ['soft_break' => "<br>\n"]]));
     }
 
     public function url(): string
