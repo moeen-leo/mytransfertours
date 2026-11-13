@@ -7,7 +7,9 @@ use App\Filament\Resources\Suppliers\Pages\EditSupplier;
 use App\Filament\Resources\Suppliers\Pages\ListSuppliers;
 use App\Models\Supplier;
 use BackedEnum;
+use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
+use Filament\Actions\ForceDeleteAction;
 use Filament\Actions\RestoreAction;
 use Filament\Forms\Components\TagsInput;
 use Filament\Forms\Components\Textarea;
@@ -79,15 +81,39 @@ class SupplierResource extends Resource
     {
         return $table
             ->defaultSort('name')
+            ->modifyQueryUsing(fn (Builder $query) => $query->withCount(Supplier::usageCounts()))
             ->columns([
                 TextColumn::make('name')->searchable()->sortable()->weight('semibold')
                     ->description(fn (Supplier $r) => $r->contact_name),
                 TextColumn::make('email')->searchable()->copyable(),
                 TextColumn::make('whatsapp')->label('WhatsApp')->placeholder('—'),
+                TextColumn::make('used_in')->label('Used in')
+                    ->state(fn (Supplier $r) => $r->usageTotal())
+                    ->formatStateUsing(fn (int $state) => $state === 0 ? 'Not used' : $state.' '.\Illuminate\Support\Str::plural('record', $state))
+                    ->badge()->color(fn (int $state) => $state === 0 ? 'gray' : 'success')
+                    ->tooltip(fn (Supplier $r) => $r->usageSummary()),
                 ToggleColumn::make('is_active')->label('Active'),
             ])
             ->filters([TrashedFilter::make()])
-            ->recordActions([EditAction::make(), RestoreAction::make()]);
+            ->recordActions([
+                EditAction::make(),
+                static::deleteAction(DeleteAction::make()),
+                static::deleteAction(ForceDeleteAction::make()),
+                RestoreAction::make(),
+            ]);
+    }
+
+    /**
+     * Delete only a supplier nothing points at. A used one shows a disabled button
+     * with the reason, so the team knows to move its products to another supplier first.
+     */
+    public static function deleteAction(DeleteAction|ForceDeleteAction $action): DeleteAction|ForceDeleteAction
+    {
+        return $action
+            ->disabled(fn (Supplier $record) => $record->usageTotal() > 0)
+            ->tooltip(fn (Supplier $record) => $record->usageTotal() > 0
+                ? 'Used in '.$record->usageSummary().'. Move those to another supplier first.'
+                : null);
     }
 
     public static function getEloquentQuery(): Builder

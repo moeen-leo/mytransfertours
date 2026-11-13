@@ -15,8 +15,8 @@ class EditSupplier extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            DeleteAction::make(),
-            ForceDeleteAction::make(),
+            SupplierResource::deleteAction(DeleteAction::make()),
+            SupplierResource::deleteAction(ForceDeleteAction::make()),
             RestoreAction::make(),
         ];
     }
