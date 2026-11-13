@@ -28,6 +28,14 @@ class DeployController extends Controller
             Artisan::call('app:backup-database', [], $output);
         }
 
+        // /_deploy/<token>?import_catalogue=dev copies the dev site's catalogue into this site
+        // (replacing this site's). Backs up this site's database first.
+        if ($exit === 0 && filled($source = request()->query('import_catalogue'))) {
+            $output->writeln("\n— Import catalogue from {$source} —");
+            Artisan::call('app:backup-database', [], $output);
+            $exit = Artisan::call('app:import-catalogue', ['source' => (string) $source], $output);
+        }
+
         return response(
             ($exit === 0 ? "OK\n\n" : "FAILED (see storage/logs)\n\n").$output->fetch(),
             $exit === 0 ? 200 : 500,
