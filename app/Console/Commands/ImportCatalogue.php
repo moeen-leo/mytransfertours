@@ -2,7 +2,6 @@
 
 namespace App\Console\Commands;
 
-use Database\Seeders\SampleCatalogueSeeder;
 use Dotenv\Dotenv;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Cache;
@@ -19,9 +18,12 @@ use Illuminate\Support\Facades\Schema;
  *
  * The source database details are read from that site's own .env
  * (mtt-config/<source>/.env), so nothing has to be typed anywhere.
- * Copied: places, suppliers, vehicles, transfers, tours, tickets, add-ons,
- * blackout dates, pricing rules, promo codes, currencies, and uploaded images.
- * Never touched: users, bookings, carts, settings, website pages, email templates.
+ * Copied: users and team, settings, website pages, email templates, places,
+ * suppliers, vehicles, transfers, tours, tickets, add-ons, blackout dates,
+ * pricing rules, promo codes, currencies, and uploaded images. Products keep the
+ * on/off state they have on the source site.
+ * Never copied: bookings, payments, carts and email logs (the source's are test
+ * data; on live they would chase real suppliers about fake bookings).
  */
 class ImportCatalogue extends Command
 {
@@ -33,6 +35,7 @@ class ImportCatalogue extends Command
 
     /** Parents before children, so the order also documents the dependencies. */
     private const TABLES = [
+        'users', 'settings', 'pages', 'email_templates',
         'countries', 'cities', 'locations',
         'suppliers', 'vehicle_types',
         'transfer_routes', 'transfer_route_prices',
@@ -123,11 +126,8 @@ class ImportCatalogue extends Command
 
         $this->copyImages($source);
 
-        $hidden = SampleCatalogueSeeder::deactivate();
-        if ($hidden > 0) {
-            $this->line("Turned off {$hidden} sample product(s).");
-        }
-
+        // Logins from the old user rows are no longer valid.
+        DB::table('sessions')->delete();
         Cache::flush();
         $this->info('Catalogue imported.');
 
