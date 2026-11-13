@@ -81,7 +81,10 @@ jobs:
           username: ${{ secrets.DEV_FTP_USERNAME }}
           password: ${{ secrets.DEV_FTP_PASSWORD }}
           server-dir: ${{ secrets.DEV_FTP_DIR }}
-          protocol: ftps
+          # Hostinger's FTP server drops FTPS data connections from GitHub's runners,
+          # so plain FTP; the FTP account is limited to the dev folder.
+          protocol: ftp
+          timeout: 120000
           # Runtime files on the server (logs, sessions, cache, uploads) are never touched.
           exclude: |
             **/.git*
