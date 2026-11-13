@@ -61,6 +61,9 @@ class TransferController extends Controller
             'locations' => HomeController::bookableLocations(),
             'tooSoon' => CarbonImmutable::createFromFormat('Y-m-d H:i', $data['date'].' '.$data['time'], config('app.timezone'))
                 ->lt(now()->addHours(TransferQuoter::MIN_HOURS_BEFORE)),
+            'map' => app(\App\Services\RouteMap::class)->for($from, $to),
+            // The return card is only offered when the reverse route is sold too.
+            'returnAvailable' => $route !== null && TransferRoute::query()->between($to->id, $from->id)->where('is_active', true)->exists(),
         ]);
     }
 

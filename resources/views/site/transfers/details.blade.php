@@ -62,10 +62,10 @@
                     <div id="return-fields" class="stack" @unless ($wantReturn) hidden @endunless>
                         <div class="grid-2">
                             <label class="field @error('return_date') has-error @enderror"><span class="label">Return date</span>
-                                <input type="date" name="return_date" value="{{ old('return_date') }}" min="{{ $p['date'] }}" data-return-required>
+                                <input type="date" name="return_date" value="{{ old('return_date', request('return_date')) }}" min="{{ $p['date'] }}" data-return-required>
                             </label>
                             <label class="field @error('return_time') has-error @enderror"><span class="label">Return pick-up time</span>
-                                <input type="time" name="return_time" value="{{ old('return_time') }}" data-return-required>
+                                <input type="time" name="return_time" value="{{ old('return_time', request('return_time')) }}" data-return-required>
                             </label>
                         </div>
                         @if ($to->requires_flight_number || $from->requires_flight_number)
