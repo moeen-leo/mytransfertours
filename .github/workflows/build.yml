@@ -1,0 +1,90 @@
+name: Build for Hostinger
+
+# Hostinger's Git deploy only copies files; it cannot run Composer.
+# On every push this job installs the PHP dependencies and pushes a
+# ready-to-run copy (with vendor/) to a build branch:
+#   develop -> build-dev   (dev.mytransfertours.com)
+#   main    -> build-main  (live site, at launch)
+#   others  -> build-wip   (test builds, never deployed)
+# Hostinger is connected to the build branch, not to develop/main.
+
+on:
+  push:
+    branches: ['**', '!build-*']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: build-${{ github.ref_name }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: mbstring, pdo_mysql, bcmath, intl, zip
+          coverage: none
+
+      - name: Install dependencies (production)
+        run: composer install --no-dev --prefer-dist --no-interaction --no-progress --optimize-autoloader
+
+      - name: Syntax check
+        run: find app database routes bootstrap public -name '*.php' -print0 | xargs -0 -n1 php -l > /dev/null
+
+      - name: Check the app boots
+        run: |
+          cp .env.example .env
+          php artisan key:generate --force
+          php artisan about --only=environment
+          rm .env
+
+      - name: Strip docs from vendor
+        # Not needed on the server, and some (e.g. stripe-php's README) contain example keys
+        # that GitHub's secret scanning blocks.
+        run: find vendor -type f \( -iname '*.md' -o -iname '*.markdown' \) -delete
+
+      - name: Stamp build id
+        run: echo "${GITHUB_SHA}" > BUILD_ID
+
+      - name: Push ready-to-run build
+        run: |
+          case "${GITHUB_REF_NAME}" in develop) TARGET="build-dev" ;; main) TARGET="build-main" ;; *) TARGET="build-wip" ;; esac
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout --orphan "$TARGET-tmp"
+          git rm -r -q --cached .github
+          rm -rf .github
+          git add -A
+          git add -f vendor composer.lock BUILD_ID
+          git commit -q -m "Build ${GITHUB_SHA::7} from ${GITHUB_REF_NAME}"
+          git push -f origin "HEAD:${TARGET}"
+          echo "Pushed to ${TARGET}"
+
+      # Hostinger allows one Git connection, and at launch it serves the live site
+      # (build-main). Dev keeps updating through this FTP upload instead.
+      # Does nothing until the DEV_FTP_* secrets are added in GitHub
+      # (Settings -> Secrets and variables -> Actions); see docs/DEPLOY-HOSTINGER.md.
+      - name: Upload dev build over FTP
+        if: github.ref_name == 'develop' && env.DEV_FTP_SERVER != ''
+        env:
+          DEV_FTP_SERVER: ${{ secrets.DEV_FTP_SERVER }}
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.DEV_FTP_SERVER }}
+          username: ${{ secrets.DEV_FTP_USERNAME }}
+          password: ${{ secrets.DEV_FTP_PASSWORD }}
+          server-dir: ${{ secrets.DEV_FTP_DIR }}
+          protocol: ftps
+          # Runtime files on the server (logs, sessions, cache, uploads) are never touched.
+          exclude: |
+            **/.git*
+            **/.git*/**
+            storage/**
+            public/storage/**

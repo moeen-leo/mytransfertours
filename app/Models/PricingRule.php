@@ -29,7 +29,7 @@ class PricingRule extends Model
     public function matches(CarbonInterface $date, ?string $time = null): bool
     {
         return match ($this->rule_type) {
-            'weekday' => in_array($date->isoWeekday(), $this->weekdays ?? [], true),
+            'weekday' => in_array($date->isoWeekday(), array_map('intval', $this->weekdays ?? []), true),
             'date_range' => $date->betweenIncluded($this->date_from, $this->date_to),
             'time_range' => $time !== null && $this->timeInRange($time),
             default => false,

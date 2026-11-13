@@ -1,0 +1,12 @@
+# Hostinger points the (sub)domain at the project root, but Laravel must be
+# served from /public. Every request is routed into /public, so app code,
+# vendor/, storage/ and any stray .env file can never be downloaded.
+<IfModule mod_rewrite.c>
+    Options -Indexes
+    RewriteEngine On
+    RewriteRule ^(.*)$ public/$1 [L]
+</IfModule>
+
+<FilesMatch "^\.">
+    Require all denied
+</FilesMatch>

@@ -45,7 +45,8 @@ class Attraction extends Model
 
     public function isOpenOn(CarbonInterface $date): bool
     {
-        if (in_array($date->isoWeekday(), $this->closed_weekdays ?? [], true)) {
+        // Stored as strings by the admin checkbox list, so compare as integers.
+        if (in_array($date->isoWeekday(), array_map('intval', $this->closed_weekdays ?? []), true)) {
             return false;
         }
 

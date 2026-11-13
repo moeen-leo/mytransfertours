@@ -1,0 +1,24 @@
+<?php
+
+return [
+    'stripe' => [
+        'key' => env('STRIPE_KEY'),
+        'secret' => env('STRIPE_SECRET'),
+        'webhook_secret' => env('STRIPE_WEBHOOK_SECRET'),
+    ],
+
+    'google' => [
+        'client_id' => env('GOOGLE_CLIENT_ID'),
+        'client_secret' => env('GOOGLE_CLIENT_SECRET'),
+        // A path is turned into a full URL with APP_URL, so this works without setting it.
+        'redirect' => env('GOOGLE_REDIRECT_URI') ?: '/auth/google/callback',
+    ],
+
+    'postmark' => ['key' => env('POSTMARK_API_KEY')],
+    'resend' => ['key' => env('RESEND_API_KEY')],
+    'ses' => [
+        'key' => env('AWS_ACCESS_KEY_ID'),
+        'secret' => env('AWS_SECRET_ACCESS_KEY'),
+        'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
+    ],
+];

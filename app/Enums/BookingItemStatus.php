@@ -2,7 +2,9 @@
 
 namespace App\Enums;
 
-enum BookingItemStatus: string
+use Filament\Support\Contracts\HasLabel;
+
+enum BookingItemStatus: string implements HasLabel
 {
     case Pending = 'pending';
     case SentToSupplier = 'sent_to_supplier';
@@ -14,5 +16,10 @@ enum BookingItemStatus: string
     public function label(): string
     {
         return ucwords(str_replace('_', ' ', $this->value));
+    }
+
+    public function getLabel(): string
+    {
+        return $this->label();
     }
 }
