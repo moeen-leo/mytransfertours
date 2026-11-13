@@ -14,6 +14,10 @@ return [
         'redirect' => env('GOOGLE_REDIRECT_URI') ?: '/auth/google/callback',
     ],
 
+    // Optional: road route on the transfer results map (free key at openrouteservice.org).
+    // Without it the map draws a straight dashed line between the two points.
+    'openrouteservice' => ['key' => env('ORS_API_KEY')],
+
     'postmark' => ['key' => env('POSTMARK_API_KEY')],
     'resend' => ['key' => env('RESEND_API_KEY')],
     'ses' => [
