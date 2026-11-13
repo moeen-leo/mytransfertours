@@ -2,7 +2,9 @@
 
 The live site is a second copy of the app with its own folder, database and `.env`, deployed from `main` (GitHub builds `build-main`).
 
-> **Hostinger allows only one Git connection.** At launch that connection moves from `build-dev` (dev folder) to `build-main` (live folder). The dev site keeps running but stops updating; see *After launch* for how to keep testing.
+> **Hostinger allows only one Git connection.** At launch that connection moves from `build-dev` (dev folder) to `build-main` (live folder). Set up the dev FTP upload first ([DEPLOY-HOSTINGER.md → Keeping dev updated after launch](DEPLOY-HOSTINGER.md#keeping-dev-updated-after-launch-ftp)) so dev keeps updating.
+>
+> **Stripe can wait.** With no Stripe keys in the live `.env`, checkout simply doesn't offer card payment, and the launch check flags the missing keys. Add them (step 4) before you take real bookings.
 
 Work through the steps in order. Steps 1–6 can be done days before launch; the site only goes public at step 8.
 
@@ -87,7 +89,7 @@ This runs deploy steps, emails, supplier reminders, exchange rates and the **dai
 
 ## After launch
 
-- The one Git connection now serves the live site, so dev no longer updates by itself. To test new work on dev, either switch the connection back to `build-dev` and the dev folder for the test (and back to `build-main` and the live folder afterwards), or ask me to add an FTP upload of `build-dev` to the dev folder so both sites update on their own.
+- The one Git connection now serves the live site. Dev keeps updating through the FTP upload, provided the `DEV_FTP_*` secrets are set ([DEPLOY-HOSTINGER.md → Keeping dev updated after launch](DEPLOY-HOSTINGER.md#keeping-dev-updated-after-launch-ftp)).
 - New work still goes to `develop`. To release it, merge `develop` into `main`; the live site updates by itself (then open the live `/_deploy/<token>` to apply it straight away).
 - Unexpected errors on the live site are emailed to the company email (or the first admin), at most once per 30 minutes per error.
 - Logs: `<live folder>/storage/logs/` in File Manager.

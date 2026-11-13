@@ -66,3 +66,25 @@ jobs:
           git commit -q -m "Build ${GITHUB_SHA::7} from ${GITHUB_REF_NAME}"
           git push -f origin "HEAD:${TARGET}"
           echo "Pushed to ${TARGET}"
+
+      # Hostinger allows one Git connection, and at launch it serves the live site
+      # (build-main). Dev keeps updating through this FTP upload instead.
+      # Does nothing until the DEV_FTP_* secrets are added in GitHub
+      # (Settings -> Secrets and variables -> Actions); see docs/DEPLOY-HOSTINGER.md.
+      - name: Upload dev build over FTP
+        if: github.ref_name == 'develop' && env.DEV_FTP_SERVER != ''
+        env:
+          DEV_FTP_SERVER: ${{ secrets.DEV_FTP_SERVER }}
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.DEV_FTP_SERVER }}
+          username: ${{ secrets.DEV_FTP_USERNAME }}
+          password: ${{ secrets.DEV_FTP_PASSWORD }}
+          server-dir: ${{ secrets.DEV_FTP_DIR }}
+          protocol: ftps
+          # Runtime files on the server (logs, sessions, cache, uploads) are never touched.
+          exclude: |
+            **/.git*
+            **/.git*/**
+            storage/**
+            public/storage/**

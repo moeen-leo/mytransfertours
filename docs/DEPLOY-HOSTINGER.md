@@ -95,6 +95,24 @@ How website accounts are matched: a Google sign-in with an email that already ha
 | Google button missing | `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` empty, or config still cached: open `/_deploy/<token>`. |
 | Logs | `public_html/dev/storage/logs/` in File Manager. Send me the latest file. |
 
+## Keeping dev updated after launch (FTP)
+
+At launch the one Git connection moves to `build-main` and the live folder. From then on GitHub uploads every `develop` build to the dev folder over FTP, so both sites update by themselves. Set this up **before** step 7 of [LAUNCH.md](LAUNCH.md):
+
+1. hPanel → **Files → FTP Accounts** → create an account whose directory is the **dev folder** (e.g. `public_html/dev`). Note the FTP host (e.g. `ftp.mytransfertours.com` or the server IP), username and password.
+2. github.com/moeen-leo/mytransfertours → **Settings → Secrets and variables → Actions → New repository secret**, add:
+
+| Secret | Value |
+|---|---|
+| `DEV_FTP_SERVER` | the FTP host |
+| `DEV_FTP_USERNAME` | the FTP username |
+| `DEV_FTP_PASSWORD` | the FTP password |
+| `DEV_FTP_DIR` | `./` if the FTP account opens straight in the dev folder, otherwise the path to it, ending in `/` (e.g. `public_html/dev/`) |
+
+3. **Actions → Build for Hostinger → Run workflow** on `develop`. The first upload sends everything (about 15,000 files, 10–20 minutes); later uploads only send what changed.
+
+Until `DEV_FTP_SERVER` is set, the upload step is skipped and nothing changes. `storage/` is never uploaded or deleted, so logs, sessions and uploads on the server are safe. The cron job on the dev folder applies each upload the same way it applies a Git deploy.
+
 ## Live site (at launch)
 
 Same steps with: branch **`build-main`**, a separate database `mtt_live`, `.env` at `mtt-config/<live folder>/.env` with `APP_ENV=production`, `APP_URL=https://mytransfertours.com` and **live** Stripe keys, plus a second cron job pointing at the live folder.
