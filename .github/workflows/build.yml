@@ -18,7 +18,9 @@ permissions:
 
 concurrency:
   group: build-${{ github.ref_name }}
-  cancel-in-progress: true
+  # develop waits for a running build instead of cancelling it: a cancelled FTP
+  # upload would have to start over.
+  cancel-in-progress: ${{ github.ref_name != 'develop' }}
 
 jobs:
   build:
