@@ -71,10 +71,11 @@ jobs:
 
       # Hostinger allows one Git connection, and at launch it serves the live site
       # (build-main). Dev keeps updating through this FTP upload instead.
-      # Does nothing until the DEV_FTP_* secrets are added in GitHub
-      # (Settings -> Secrets and variables -> Actions); see docs/DEPLOY-HOSTINGER.md.
+      # Off until the repository variable DEV_FTP_ENABLED is "true" (Settings ->
+      # Secrets and variables -> Actions -> Variables) and the DEV_FTP_* secrets
+      # are set; see docs/DEPLOY-HOSTINGER.md.
       - name: Upload dev build over FTP
-        if: github.ref_name == 'develop' && env.DEV_FTP_SERVER != ''
+        if: github.ref_name == 'develop' && env.DEV_FTP_SERVER != '' && vars.DEV_FTP_ENABLED == 'true'
         env:
           DEV_FTP_SERVER: ${{ secrets.DEV_FTP_SERVER }}
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
