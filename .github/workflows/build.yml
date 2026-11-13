@@ -60,6 +60,8 @@ jobs:
           case "${GITHUB_REF_NAME}" in develop) TARGET="build-dev" ;; main) TARGET="build-main" ;; *) TARGET="build-wip" ;; esac
           git config user.name  "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          # Remember the previous build, so the dev upload below sends only what changed.
+          if git fetch -q --depth=1 origin "${TARGET}"; then echo "PREVIOUS_BUILD=$(git rev-parse FETCH_HEAD)" >> "$GITHUB_ENV"; fi
           git checkout --orphan "$TARGET-tmp"
           git rm -r -q --cached .github
           rm -rf .github
@@ -69,28 +71,38 @@ jobs:
           git push -f origin "HEAD:${TARGET}"
           echo "Pushed to ${TARGET}"
 
-      # Hostinger allows one Git connection, and at launch it serves the live site
-      # (build-main). Dev keeps updating through this FTP upload instead.
-      # Off until the repository variable DEV_FTP_ENABLED is "true" (Settings ->
-      # Secrets and variables -> Actions -> Variables) and the DEV_FTP_* secrets
-      # are set; see docs/DEPLOY-HOSTINGER.md.
-      - name: Upload dev build over FTP
-        if: github.ref_name == 'develop' && env.DEV_FTP_SERVER != '' && vars.DEV_FTP_ENABLED == 'true'
+      # Hostinger allows one Git connection, and it serves the live site (build-main).
+      # Dev is updated here instead: the files that differ from the previous build-dev
+      # are uploaded (and removed files deleted) over FTP, usually a handful, in seconds.
+      # The dev folder must hold that previous build (it does after a Git deploy of
+      # build-dev, or after any earlier run of this step).
+      # Off until the repository variable DEV_FTP_ENABLED is "true" and the DEV_FTP_*
+      # secrets are set (Settings -> Secrets and variables -> Actions); see docs/DEPLOY-HOSTINGER.md.
+      - name: Upload changed files to dev over FTP
+        if: github.ref_name == 'develop' && vars.DEV_FTP_ENABLED == 'true'
         env:
-          DEV_FTP_SERVER: ${{ secrets.DEV_FTP_SERVER }}
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
-        with:
-          server: ${{ secrets.DEV_FTP_SERVER }}
-          username: ${{ secrets.DEV_FTP_USERNAME }}
-          password: ${{ secrets.DEV_FTP_PASSWORD }}
-          server-dir: ${{ secrets.DEV_FTP_DIR }}
-          # Hostinger's FTP server drops FTPS data connections from GitHub's runners,
-          # so plain FTP; the FTP account is limited to the dev folder.
-          protocol: ftp
-          timeout: 120000
-          # Runtime files on the server (logs, sessions, cache, uploads) are never touched.
-          exclude: |
-            **/.git*
-            **/.git*/**
-            storage/**
-            public/storage/**
+          FTP_SERVER: ${{ secrets.DEV_FTP_SERVER }}
+          FTP_USER: ${{ secrets.DEV_FTP_USERNAME }}
+          FTP_PASS: ${{ secrets.DEV_FTP_PASSWORD }}
+          FTP_DIR: ${{ secrets.DEV_FTP_DIR }}
+        run: |
+          set -euo pipefail
+          if [ -z "${FTP_SERVER}" ] || [ -z "${PREVIOUS_BUILD:-}" ]; then echo "No FTP server or no previous build: skipped"; exit 0; fi
+          DIR="${FTP_DIR#./}"; DIR="${DIR#/}"; [ -z "$DIR" ] || DIR="${DIR%/}/"
+          BASE="ftp://${FTP_SERVER}/${DIR}"
+          # Hostinger's FTP server drops FTPS data connections from GitHub's runners: plain FTP.
+          # The FTP account is limited to the dev folder. storage/ (logs, sessions) is never touched.
+          git diff --name-status --no-renames "$PREVIOUS_BUILD" HEAD -- . ':(exclude)storage' > /tmp/changes
+          echo "$(wc -l < /tmp/changes) changed file(s)"
+          up() { curl -sS --globoff --ftp-create-dirs --retry 3 --user "${FTP_USER}:${FTP_PASS}" -T "$1" "${BASE}${1// /%20}"; echo "  up  $1"; }
+          while IFS=$'\t' read -r status path; do
+            [ "$path" = "BUILD_ID" ] && continue
+            if [ "$status" = "D" ]; then
+              curl -sS --globoff --user "${FTP_USER}:${FTP_PASS}" "ftp://${FTP_SERVER}/" -Q "DELE /${DIR}${path}" -o /dev/null || echo "  (could not delete $path)"
+              echo "  del $path"
+            else
+              up "$path"
+            fi
+          done < /tmp/changes
+          # BUILD_ID last: the server's cron applies the update (migrations, caches) when it changes.
+          up BUILD_ID

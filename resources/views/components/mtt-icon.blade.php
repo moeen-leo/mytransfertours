@@ -6,7 +6,8 @@
         <circle cx="12" cy="7" r="3.5"/><path d="M5 20c0-5 3.5-7 7-7s7 2 7 7"/>
         @break
     @case('seat')
-        <path d="M7 4v9h10"/><path d="M7 13l-1 7"/><path d="M17 13v7"/><path d="M7 9h7a2 2 0 0 1 2 2v2"/>
+        {{-- Car seat, side view: headrest, reclined backrest, cushion --}}
+        <rect x="8.5" y="2.5" width="5" height="4" rx="1.5"/><path d="M10 7.5 8 16.5a1.5 1.5 0 0 0 1.5 1.8H18a1.5 1.5 0 0 0 1.5-1.5 2.6 2.6 0 0 0-2.6-2.6h-5.2l1.6-6.7"/><path d="M10 21h7"/>
         @break
     @case('bag')
         <rect x="5" y="7" width="14" height="13" rx="2"/><path d="M9 7V4h6v3"/>
