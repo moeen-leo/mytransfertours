@@ -51,6 +51,7 @@ Route::get('/my-booking/{token}', [\App\Http\Controllers\Site\ManageBookingContr
 Route::post('/my-booking/{token}/items/{item}', [\App\Http\Controllers\Site\ManageBookingController::class, 'update'])->whereNumber('item')->middleware('throttle:20,1')->name('manage.update');
 Route::post('/my-booking/{token}/change', [\App\Http\Controllers\Site\ManageBookingController::class, 'requestChange'])->middleware('throttle:10,1')->name('manage.change');
 Route::get('/my-booking/{token}/invoice', [\App\Http\Controllers\Site\ManageBookingController::class, 'invoice'])->name('manage.invoice');
+Route::get('/my-booking/{token}/voucher', [\App\Http\Controllers\Site\ManageBookingController::class, 'voucher'])->middleware('throttle:30,1')->name('manage.voucher');
 
 Route::middleware('guest:web')->group(function () {
     Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
@@ -75,6 +76,8 @@ Route::middleware('auth:web')->group(function () {
 
 // Printable invoice. Staff (admin login) see any; customers (website login) only their own.
 Route::get('/invoices/{booking}', [InvoiceController::class, 'show'])->middleware('auth:admin,web')->name('invoices.show');
+// Booking voucher PDF, same access rules as the invoice.
+Route::get('/vouchers/{booking}', [\App\Http\Controllers\VoucherController::class, 'show'])->middleware(['auth:admin,web', 'throttle:30,1'])->name('vouchers.show');
 
 // ---- Supplier one-click page (link in supplier emails; token-protected, no login) ----
 Route::get('/supplier/{item}/{token}', [\App\Http\Controllers\SupplierBookingController::class, 'show'])->whereNumber('item')->name('supplier.show');

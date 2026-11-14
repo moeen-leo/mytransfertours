@@ -46,8 +46,39 @@ class BookingMailer
             new BookingMail("Booking confirmed: {$booking->reference}", 'mail.customer.confirmation', [
                 'booking' => $booking,
                 'company' => $this->company(),
-            ], $this->company()['email']),
+                'hasVoucher' => ($pdfs = $this->voucherPdfs($booking)) !== [],
+            ], $this->company()['email'], $pdfs),
             $trigger, $by);
+    }
+
+    /** The booking voucher PDF, emailed to the customer (admin "Email voucher" button). */
+    public function customerVoucher(Booking $booking, string $trigger = 'manual', ?int $by = null): EmailLog
+    {
+        return $this->deliver($booking, null, 'customer_voucher', $booking->email, [],
+            new BookingMail("Your voucher: {$booking->reference}", 'mail.customer.voucher', [
+                'booking' => $booking,
+                'company' => $this->company(),
+                'hasVoucher' => ($pdfs = $this->voucherPdfs($booking)) !== [],
+            ], $this->company()['email'], $pdfs),
+            $trigger, $by);
+    }
+
+    /** The voucher as an attachment, or none if the booking has no voucher yet or the PDF fails (the email still goes). */
+    private function voucherPdfs(Booking $booking): array
+    {
+        if (! VoucherPdf::available($booking)) {
+            return [];
+        }
+
+        try {
+            $vouchers = app(VoucherPdf::class);
+
+            return [$vouchers->filename($booking) => $vouchers->render($booking)];
+        } catch (\Throwable $e) {
+            report($e);
+
+            return [];
+        }
     }
 
     /** Supplier confirmed and (maybe) added driver details. */

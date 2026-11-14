@@ -238,6 +238,12 @@ class BookingResource extends Resource
                     ->url(fn (Booking $r) => route('invoices.show', $r))
                     ->openUrlInNewTab()
                     ->visible(fn (Booking $r) => filled($r->invoice_number)),
+                Action::make('voucher')
+                    ->label('Voucher')
+                    ->icon(Heroicon::OutlinedTicket)
+                    ->url(fn (Booking $r) => route('vouchers.show', $r))
+                    ->openUrlInNewTab()
+                    ->visible(fn (Booking $r) => \App\Services\VoucherPdf::available($r)),
             ]);
     }
 

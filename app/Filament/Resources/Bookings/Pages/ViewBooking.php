@@ -26,6 +26,12 @@ class ViewBooking extends ViewRecord
 {
     protected static string $resource = BookingResource::class;
 
+    /** Load what the page shows up front: dev runs Laravel's strict mode, where lazy loading throws. */
+    protected function resolveRecord(int|string $key): \Illuminate\Database\Eloquent\Model
+    {
+        return parent::resolveRecord($key)->load(['items.transfer', 'items.tour', 'items.tickets', 'items.extras', 'items.booking']);
+    }
+
     public function getTitle(): string
     {
         return 'Booking '.$this->record->reference;
@@ -41,6 +47,14 @@ class ViewBooking extends ViewRecord
                 ->url(fn (Booking $record) => route('invoices.show', $record))
                 ->openUrlInNewTab()
                 ->visible(fn (Booking $record) => filled($record->invoice_number)),
+
+            Action::make('voucher')
+                ->label('Voucher')
+                ->icon(Heroicon::OutlinedTicket)
+                ->color('gray')
+                ->url(fn (Booking $record) => route('vouchers.show', $record))
+                ->openUrlInNewTab()
+                ->visible(fn (Booking $record) => \App\Services\VoucherPdf::available($record)),
 
             Action::make('settle')
                 ->label('Mark as settled')
@@ -113,6 +127,16 @@ class ViewBooking extends ViewRecord
                     ->modalDescription(fn (Booking $record) => 'Sends the booking confirmation again to '.$record->email.'.')
                     ->action(function (Booking $record) {
                         $log = app(BookingMailer::class)->customerConfirmation($record, 'manual', \Filament\Facades\Filament::auth()->id());
+                        $this->notifyEmail($log);
+                    }),
+                Action::make('emailVoucher')
+                    ->label('Email voucher to customer')
+                    ->icon(Heroicon::OutlinedTicket)
+                    ->requiresConfirmation()
+                    ->modalDescription(fn (Booking $record) => 'Sends the voucher PDF to '.$record->email.'.')
+                    ->visible(fn (Booking $record) => \App\Services\VoucherPdf::available($record))
+                    ->action(function (Booking $record) {
+                        $log = app(BookingMailer::class)->customerVoucher($record, 'manual', \Filament\Facades\Filament::auth()->id());
                         $this->notifyEmail($log);
                     }),
                 Action::make('resendSupplier')

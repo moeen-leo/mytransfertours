@@ -40,7 +40,7 @@
                             <td>{{ Money::formatIn((float) $b->total, $b->currency) }}</td>
                             <td><span class="chip">{{ $b->status->getLabel() }}</span></td>
                             <td>{{ $b->payment_method->getLabel() }}<br><span class="tiny {{ $b->isOverdue() ? 'error' : 'muted' }}">{{ $b->payment_status->getLabel() }}{{ $b->payment_status === \App\Enums\PaymentStatus::Unpaid && $b->payment_due_at ? ' · due '.$b->payment_due_at->format('j M') : '' }}</span></td>
-                            <td>@if ($b->invoice_number)<a href="{{ route('invoices.show', $b) }}" target="_blank" rel="noopener">Invoice</a>@endif</td>
+                            <td style="white-space: nowrap">@if (\App\Services\VoucherPdf::available($b))<a href="{{ route('vouchers.show', $b) }}">Voucher</a>@endif @if ($b->invoice_number)<br><a href="{{ route('invoices.show', $b) }}" target="_blank" rel="noopener">Invoice</a>@endif</td>
                         </tr>
                     @endforeach
                 </tbody>

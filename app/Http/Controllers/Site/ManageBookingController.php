@@ -178,6 +178,14 @@ class ManageBookingController extends Controller
         ]);
     }
 
+    public function voucher(string $token, \App\Services\VoucherPdf $vouchers): \Illuminate\Http\Response
+    {
+        $booking = $this->booking($token);
+        abort_unless(\App\Services\VoucherPdf::available($booking), 404);
+
+        return \App\Http\Controllers\VoucherController::download($booking, $vouchers);
+    }
+
     // ------------------------------------------------------------- helpers
 
     private function booking(string $token): Booking

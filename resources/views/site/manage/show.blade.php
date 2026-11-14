@@ -25,6 +25,7 @@
         <div class="row">
             <span class="chip">{{ $booking->status->getLabel() }}</span>
             <span class="chip ticket">{{ $booking->payment_status->getLabel() }}</span>
+            @if (\App\Services\VoucherPdf::available($booking))<a class="btn small" href="{{ route('manage.voucher', $booking->manage_token) }}">Download voucher</a>@endif
             @if ($booking->invoice_number)<a class="btn small ghost" href="{{ route('manage.invoice', $booking->manage_token) }}" target="_blank" rel="noopener">Invoice</a>@endif
         </div>
     </div>

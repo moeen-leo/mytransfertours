@@ -23,6 +23,10 @@ Paid by card.
 View or change my booking
 </x-mail::button>
 
+@if (! empty($hasVoucher))
+**Your voucher is attached (PDF).** Show it to your driver or guide, printed or on your phone.
+
+@endif
 Keep this email: the button above is your private link to your booking. From there you can update your flight number, hotel or notes, request a date change, and print your invoice.
 
 Questions? Just reply to this email{{ $company['phone'] ? ' or message us on '.$company['phone'] : '' }}.
