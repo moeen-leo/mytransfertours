@@ -1,4 +1,4 @@
-@extends('layouts.site', ['title' => 'Airport & city transfers in Malaysia', 'description' => 'Private airport and city transfers in Malaysia with a fixed price per car. KLIA, klia2 and hotels: meet and greet, flight tracking and free waiting time.'])
+@extends('layouts.site', \App\Support\PageCopy::seo('transfers'))
 
 @php
     use App\Support\Money;
@@ -9,9 +9,10 @@
 <section class="hero" style="padding: 40px 0 56px">
     <div class="wrap hero-grid">
         <div class="stack" style="gap: 16px">
-            <span class="chip" style="background: rgba(242,184,75,.18); color: #F7D58E; align-self: flex-start">Transfers</span>
-            <h1 style="font-size: clamp(34px, 5vw, 52px)">Airport &amp; city rides,<br><span>one fixed price.</span></h1>
-            <p class="lead">Private car, MPV or van. The price is for the whole vehicle, not per person. Your driver tracks your flight and waits if it's late.</p>
+            @php $copy = \App\Support\PageCopy::for('transfers'); @endphp
+            @if ($copy['label'] !== '')<span class="chip" style="background: rgba(242,184,75,.18); color: #F7D58E; align-self: flex-start">{{ \App\Support\PageCopy::get('transfers', 'label') }}</span>@endif
+            @if ($copy['heading'] !== '')<h1 style="font-size: clamp(34px, 5vw, 52px)">{{ \App\Support\PageCopy::heading('transfers') }}</h1>@endif
+            @if ($copy['subheading'] !== '')<p class="lead">{{ $copy['subheading'] }}</p>@endif
             <div class="ticks"><span>✓ Meet &amp; greet</span><span>✓ Tolls included</span><span>✓ Free cancellation window</span></div>
         </div>
         <form class="card search-card stack" method="get" action="{{ route('transfers.search') }}" style="gap: 12px">
