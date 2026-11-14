@@ -104,5 +104,12 @@ jobs:
               up "$path"
             fi
           done < /tmp/changes
+          # Always send the whole Composer autoload set, and delete Laravel's cached
+          # package/service lists: a stale list naming a package this build doesn't have
+          # (e.g. a dev-only one) stops the app, and the cron that would clear it, from booting.
+          for f in vendor/composer/*.php vendor/composer/installed.json; do up "$f"; done
+          for f in bootstrap/cache/packages.php bootstrap/cache/services.php bootstrap/cache/config.php; do
+            curl -sS --globoff --user "${FTP_USER}:${FTP_PASS}" "ftp://${FTP_SERVER}/" -Q "DELE /${DIR}${f}" -o /dev/null 2>/dev/null && echo "  del $f" || true
+          done
           # BUILD_ID last: the server's cron applies the update (migrations, caches) when it changes.
           up BUILD_ID
