@@ -1,11 +1,12 @@
-@extends('layouts.site', ['title' => 'Tours in Malaysia', 'description' => 'Day tours in and around Kuala Lumpur: join a shared tour or book a private car with driver. Hotel pick-up, fixed prices and instant confirmation.'])
+@extends('layouts.site', \App\Support\PageCopy::seo('tours'))
 
 @php use App\Support\Money; @endphp
 
 @section('content')
 <div class="wrap page stack" style="gap: 20px">
     <div class="row between" style="align-items: end">
-        <div><span class="label">Tours</span><h1 style="font-size: 38px">Day tours with a local guide</h1><p class="muted" style="margin-top: 6px">Join a shared group (seat-in-coach) or go private in your own vehicle.</p></div>
+        @php $copy = \App\Support\PageCopy::for('tours'); @endphp
+        <div>@if ($copy['label'] !== '')<span class="label">{{ $copy['label'] }}</span>@endif@if ($copy['heading'] !== '')<h1 style="font-size: 38px">{{ \App\Support\PageCopy::heading('tours') }}</h1>@endif@if ($copy['subheading'] !== '')<p class="muted" style="margin-top: 6px">{{ $copy['subheading'] }}</p>@endif</div>
         @if ($cities->count() > 1)
             <div class="row">
                 <a class="tab {{ $city ? '' : 'on' }}" href="{{ route('tours.index') }}">All</a>
