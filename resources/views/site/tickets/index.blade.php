@@ -1,12 +1,11 @@
-@extends('layouts.site', \App\Support\PageCopy::seo('tickets'))
+@extends('layouts.site', ['title' => 'Attraction tickets in Malaysia', 'description' => 'Skip the queue with attraction tickets for Malaysia\'s top sights. Choose your date, pay once and get your tickets by email.'])
 
 @php use App\Support\Money; @endphp
 
 @section('content')
 <div class="wrap page stack" style="gap: 20px">
     <div class="row between" style="align-items: end">
-        @php $copy = \App\Support\PageCopy::for('tickets'); @endphp
-        <div>@if ($copy['label'] !== '')<span class="label">{{ $copy['label'] }}</span>@endif@if ($copy['heading'] !== '')<h1 style="font-size: 38px">{{ \App\Support\PageCopy::heading('tickets') }}</h1>@endif@if ($copy['subheading'] !== '')<p class="muted" style="margin-top: 6px">{{ $copy['subheading'] }}</p>@endif</div>
+        <div><span class="label">Attraction tickets</span><h1 style="font-size: 38px">Skip the ticket queue</h1><p class="muted" style="margin-top: 6px">Pick a date and how many tickets. Your e-ticket arrives by email.</p></div>
         @if ($cities->count() > 1)
             <div class="row">
                 <a class="tab {{ $city ? '' : 'on' }}" href="{{ route('tickets.index') }}">All</a>
