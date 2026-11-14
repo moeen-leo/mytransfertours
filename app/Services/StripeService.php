@@ -161,17 +161,27 @@ class StripeService
     /** Stripe's fee in the account's settlement currency (MYR), if Stripe has reported it yet. */
     private function feeFromSession(Session $session): ?float
     {
+        $intent = $session->payment_intent;
+        $intentId = is_string($intent) ? $intent : $intent?->id;
+
+        return $intentId ? $this->feeForIntent($intentId) : null;
+    }
+
+    /**
+     * Stripe's fee for a payment, in the account's currency (MYR). Null while Stripe
+     * hasn't calculated it yet (often the case right as checkout completes):
+     * app:sync-stripe-fees fills it in a few minutes later.
+     */
+    public function feeForIntent(string $intentId): ?float
+    {
         try {
-            $intent = $session->payment_intent;
-            if (is_string($intent)) {
-                $intent = $this->client()->paymentIntents->retrieve($intent, ['expand' => ['latest_charge.balance_transaction']]);
-            }
+            $intent = $this->client()->paymentIntents->retrieve($intentId, ['expand' => ['latest_charge.balance_transaction']]);
             $bt = $intent?->latest_charge?->balance_transaction ?? null;
             if (is_object($bt) && isset($bt->fee)) {
                 return self::fromMinor((int) $bt->fee, (string) $bt->currency);
             }
         } catch (\Throwable $e) {
-            Log::info('Could not read Stripe fee', ['session' => $session->id, 'error' => $e->getMessage()]);
+            Log::info('Could not read Stripe fee', ['payment_intent' => $intentId, 'error' => $e->getMessage()]);
         }
 
         return null;
