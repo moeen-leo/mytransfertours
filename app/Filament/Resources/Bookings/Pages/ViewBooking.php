@@ -121,22 +121,15 @@ class ViewBooking extends ViewRecord
 
             ActionGroup::make([
                 Action::make('resendCustomer')
-                    ->label('Resend confirmation to customer')
+                    ->label('Resend email to customer')
                     ->icon(Heroicon::OutlinedEnvelope)
                     ->requiresConfirmation()
-                    ->modalDescription(fn (Booking $record) => 'Sends the booking confirmation again to '.$record->email.'.')
+                    ->visible(fn (Booking $record) => in_array($record->status, [BookingStatus::Booked, BookingStatus::Confirmed, BookingStatus::Completed], true))
+                    ->modalDescription(fn (Booking $record) => \App\Services\VoucherPdf::available($record)
+                        ? 'Sends "Booking confirmed" with the voucher PDF attached to '.$record->email.'.'
+                        : 'Sends "Booking received" (no voucher yet: not every partner has confirmed) to '.$record->email.'.')
                     ->action(function (Booking $record) {
-                        $log = app(BookingMailer::class)->customerConfirmation($record, 'manual', \Filament\Facades\Filament::auth()->id());
-                        $this->notifyEmail($log);
-                    }),
-                Action::make('emailVoucher')
-                    ->label('Email voucher to customer')
-                    ->icon(Heroicon::OutlinedTicket)
-                    ->requiresConfirmation()
-                    ->modalDescription(fn (Booking $record) => 'Sends the voucher PDF to '.$record->email.'.')
-                    ->visible(fn (Booking $record) => \App\Services\VoucherPdf::available($record))
-                    ->action(function (Booking $record) {
-                        $log = app(BookingMailer::class)->customerVoucher($record, 'manual', \Filament\Facades\Filament::auth()->id());
+                        $log = app(BookingMailer::class)->customerResend($record, \Filament\Facades\Filament::auth()->id());
                         $this->notifyEmail($log);
                     }),
                 Action::make('resendSupplier')
