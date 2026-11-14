@@ -1,4 +1,4 @@
-@extends('layouts.site', ['darkHeader' => true])
+@extends('layouts.site', ['darkHeader' => true] + \App\Support\PageCopy::seo('home'))
 @push('head')
 <link rel="preload" as="image" href="{{ asset('img/hero-malaysia.jpg') }}" media="(min-width: 901px)">
 <link rel="preload" as="image" href="{{ asset('img/hero-malaysia-sm.jpg') }}" media="(max-width: 900px)">
@@ -22,9 +22,10 @@
 <section class="hero" style="--hero-img: url('{{ asset('img/hero-malaysia.jpg') }}'); --hero-img-sm: url('{{ asset('img/hero-malaysia-sm.jpg') }}')">
     <div class="wrap hero-grid">
         <div class="stack" style="gap: 22px">
-            <span class="chip" style="background: rgba(242,184,75,.18); color: #F7D58E; align-self: flex-start">Malaysia first · more countries soon</span>
-            <h1>Land. Explore.<br>See it all.<br><span>One booking.</span></h1>
-            <p class="lead">Airport transfers, day tours and attraction tickets in one trip. One payment, instant confirmation, and your driver already has the details.</p>
+            @php $copy = \App\Support\PageCopy::for('home'); @endphp
+            @if ($copy['label'] !== '')<span class="chip" style="background: rgba(242,184,75,.18); color: #F7D58E; align-self: flex-start">{{ \App\Support\PageCopy::get('home', 'label') }}</span>@endif
+            @if ($copy['heading'] !== '')<h1>{{ \App\Support\PageCopy::heading('home') }}</h1>@endif
+            @if ($copy['subheading'] !== '')<p class="lead">{{ $copy['subheading'] }}</p>@endif
             <div class="ticks">
                 <span>✓ Fixed price per vehicle</span>
                 <span>✓ Secure payment</span>
