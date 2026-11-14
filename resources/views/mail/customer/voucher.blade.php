@@ -1,10 +1,12 @@
 <x-mail::message>
-# Your voucher, {{ $booking->lead_first_name }}
+# Your booking is confirmed, {{ $booking->lead_first_name }}!
+
+Good news: our local partners have confirmed booking **{{ $booking->reference }}**.
 
 @if (! empty($hasVoucher))
-Your voucher for booking **{{ $booking->reference }}** is attached as a PDF. Show it to your driver or guide, printed or on your phone.
+**Your voucher is attached (PDF).** Show it to your driver or guide, printed or on your phone.
 @else
-You can download the voucher for booking **{{ $booking->reference }}** from your booking page.
+You can download your voucher with the button below.
 @endif
 
 @foreach ($booking->items as $item)

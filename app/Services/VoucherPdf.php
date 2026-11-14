@@ -29,10 +29,10 @@ class VoucherPdf
         'No additional fees will be charged for processing the refund.',
     ];
 
-    /** Vouchers exist once a booking is paid or confirmed on account. */
+    /** Vouchers exist once every partner has confirmed the booking (status Confirmed). */
     public static function available(Booking $booking): bool
     {
-        return in_array($booking->status, [BookingStatus::Booked, BookingStatus::Confirmed, BookingStatus::Completed], true);
+        return in_array($booking->status, [BookingStatus::Confirmed, BookingStatus::Completed], true);
     }
 
     public function filename(Booking $booking): string

@@ -64,12 +64,17 @@ class SupplierBookingController extends Controller
             ($wasConfirmed ? 'Supplier updated ' : 'Supplier confirmed ').$item->reference.($driverNow ? ' (driver details added)' : ''),
             array_filter($data), $item->id, null);
 
+        $nowFullyConfirmed = false;
         if ($booking->status === BookingStatus::Booked && $booking->fresh('items')->allItemsConfirmed()) {
             $booking->forceFill(['status' => BookingStatus::Confirmed])->save();
+            $nowFullyConfirmed = true;
         }
 
-        // Tell the customer when it's first confirmed, and again when driver details first appear.
-        if (! $wasConfirmed || (! $hadDriver && $driverNow)) {
+        if ($nowFullyConfirmed) {
+            // Last partner confirmed: one "booking confirmed" email with the voucher attached.
+            $this->mailer->customerVoucher($booking->fresh());
+        } elseif (! $wasConfirmed || (! $hadDriver && $driverNow)) {
+            // Otherwise tell the customer when an item is first confirmed, and when driver details first appear.
             $this->mailer->customerItemConfirmed($item->fresh(['booking', 'transfer', 'tour', 'tickets', 'extras']));
         }
 

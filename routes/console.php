@@ -34,5 +34,8 @@ $artisan('queue:work', ['--stop-when-empty' => true, '--max-time' => 50, '--trie
 // fetches once per new ECB publication (weekdays after 16:30 CET), so every tick is cheap.
 $artisan('app:update-exchange-rates')->everyMinute()->withoutOverlapping();
 
+// Stripe often hasn't calculated its fee yet when a payment completes: fill it in afterwards (profit uses it).
+$artisan('app:sync-stripe-fees')->everyFiveMinutes()->withoutOverlapping();
+
 // Chase suppliers who haven't confirmed (the command decides who is due).
 $artisan('app:supplier-reminders')->everyMinute()->withoutOverlapping();

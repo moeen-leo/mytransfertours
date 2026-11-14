@@ -43,7 +43,20 @@ class BookingMailer
         $booking->loadMissing('items.transfer', 'items.tour', 'items.tickets', 'items.extras');
 
         return $this->deliver($booking, null, 'customer_confirmation', $booking->email, [],
-            new BookingMail("Booking confirmed: {$booking->reference}", 'mail.customer.confirmation', [
+            new BookingMail("Booking received: {$booking->reference}", 'mail.customer.confirmation', [
+                'booking' => $booking,
+                'company' => $this->company(),
+            ], $this->company()['email']),
+            $trigger, $by);
+    }
+
+    /** Every partner has confirmed (status Confirmed): "booking confirmed", with the voucher PDF attached. */
+    public function customerVoucher(Booking $booking, string $trigger = 'automatic', ?int $by = null): EmailLog
+    {
+        $booking->loadMissing('items');
+
+        return $this->deliver($booking, null, 'customer_voucher', $booking->email, [],
+            new BookingMail("Booking confirmed: {$booking->reference} (voucher attached)", 'mail.customer.voucher', [
                 'booking' => $booking,
                 'company' => $this->company(),
                 'hasVoucher' => ($pdfs = $this->voucherPdfs($booking)) !== [],
@@ -51,16 +64,15 @@ class BookingMailer
             $trigger, $by);
     }
 
-    /** The booking voucher PDF, emailed to the customer (admin "Email voucher" button). */
-    public function customerVoucher(Booking $booking, string $trigger = 'manual', ?int $by = null): EmailLog
+    /**
+     * Admin "Resend email to customer": the email that fits the booking's status.
+     * Booked: "booking received" (no voucher). Confirmed / Completed: "booking confirmed" with the voucher.
+     */
+    public function customerResend(Booking $booking, ?int $by = null): EmailLog
     {
-        return $this->deliver($booking, null, 'customer_voucher', $booking->email, [],
-            new BookingMail("Your voucher: {$booking->reference}", 'mail.customer.voucher', [
-                'booking' => $booking,
-                'company' => $this->company(),
-                'hasVoucher' => ($pdfs = $this->voucherPdfs($booking)) !== [],
-            ], $this->company()['email'], $pdfs),
-            $trigger, $by);
+        return VoucherPdf::available($booking)
+            ? $this->customerVoucher($booking, 'manual', $by)
+            : $this->customerConfirmation($booking, 'manual', $by);
     }
 
     /** The voucher as an attachment, or none if the booking has no voucher yet or the PDF fails (the email still goes). */
