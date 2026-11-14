@@ -168,6 +168,11 @@
     <div class="box" style="margin-top: 14px"><b>Your notes:</b> {{ $booking->customer_notes }}</div>
 @endif
 
+<div class="item" style="padding: 9px 12px">
+    <b style="font-size: 10.5px; letter-spacing: .4px">REFUND POLICY &amp; PROCESSING TIME</b>
+    <ul style="margin-top: 5px">@foreach (\App\Services\VoucherPdf::REFUND_POLICY as $line)<li>{{ $line }}</li>@endforeach</ul>
+</div>
+
 <div class="foot small">
     <table><tr>
         <td style="width: 60%">

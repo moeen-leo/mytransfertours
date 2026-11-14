@@ -21,8 +21,13 @@ use Illuminate\Support\Str;
  */
 class VoucherPdf
 {
-    /** How card refunds reach the customer (Stripe: 5-10 days). */
-    public const REFUND_NOTE = 'Refunds go back to the card you paid with and take 5–10 days to appear on your statement.';
+    /** Shown at the end of every voucher. */
+    public const REFUND_POLICY = [
+        "Approved refunds will be processed to the customer's original payment method.",
+        'Please allow 5–10 business days for the refunded amount to appear on your bank or card statement, depending on your bank or card issuer.',
+        'Any transaction or processing fees charged on the original payment are non-refundable.',
+        'No additional fees will be charged for processing the refund.',
+    ];
 
     /** Vouchers exist once a booking is paid or confirmed on account. */
     public static function available(Booking $booking): bool
@@ -110,11 +115,10 @@ class VoucherPdf
 
         if ($item->cancellation_deadline) {
             return 'Free cancellation until '.$item->cancellation_deadline->format('D j M Y, H:i')
-                .'. Cancellations after that time, or not turning up, are not refunded. '
-                .self::REFUND_NOTE;
+                .'. Cancellations after that time, or not turning up, are not refunded.';
         }
 
-        return 'See our cancellation policy at '.route('page', 'cancellation-policy').'. '.self::REFUND_NOTE;
+        return 'See our cancellation policy at '.route('page', 'cancellation-policy').'.';
     }
 
     public static function duration(int $minutes): string
